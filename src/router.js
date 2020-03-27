@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Home from './views/Home.vue'
+import AutoView from "@/views/AutoView";
 
 Vue.use(Router)
 
@@ -8,16 +8,29 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: Home
+      name: 'auto',
+      component: AutoView,
+      exact: true
     },
     {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/About.vue')
+      path: '/auto',
+      name: 'auto',
+      component: AutoView,
+    },
+    {
+      path: '/manual',
+      name: 'manual',
+      component: () => import('./views/ManualView')
+    },
+    {
+      path: '/config',
+      name: 'config',
+      component: () => import('./views/ConfigView')
+    },
+    {
+      path: '/io',
+      name: 'io',
+      component: () => import('./views/IOView')
     }
   ]
 })

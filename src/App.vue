@@ -8,7 +8,8 @@
                     <el-menu-item index="/io">{{ $t('message.io') }}</el-menu-item>
                     <el-menu-item index="/config">{{ $t('message.configure') }}</el-menu-item>
                 </el-menu>
-                <el-button @click="visible = true" type="info" style="margin-left: 30px; margin-bottom: 20px; font-size: 20px;">
+                <el-button @click="visible = true" type="info"
+                           style="margin-left: 30px; margin-bottom: 20px; font-size: 20px;">
                     {{ $t('message.selectModel') }}
                 </el-button>
                 <div v-if="product" style="font-size: 20px; margin-left: 50px; margin-bottom: 27px;">
@@ -25,13 +26,14 @@
         </div>
 
         <el-dialog :visible.sync="visible">
-                <el-button style="width: 100%; height: 60px; margin: 0 0 16px 0; font-size: 20px;" type="primary" v-bind:key="index" @click="setProduct(productName)"
-                           v-for="({productName}, index) in productList" plain>
-                    {{ productName }}
-                    <span v-if="product" style="float: right;">
+            <el-button style="width: 100%; height: 60px; margin: 0 0 16px 0; font-size: 20px;" type="primary"
+                       v-bind:key="index" @click="setProduct(productName)"
+                       v-for="({productName}, index) in productList" plain>
+                {{ productName }}
+                <span v-if="product" style="float: right;">
                         <i v-if="product.productName === productName" class="el-icon-check"/>
                     </span>
-                </el-button>
+            </el-button>
         </el-dialog>
     </div>
 </template>
@@ -39,7 +41,7 @@
 <script>
     import router from "@/router"
     import moment from "moment"
-    import { getDB } from '@/utils'
+    import {getDB} from '@/utils'
     import '@/./serial'
 
     export default {
@@ -70,7 +72,8 @@
             }
         },
         mounted() {
-            this.activeIndex = this.$route.path
+            const path = this.$route.path
+            this.activeIndex = (path === '/') ? '/auto' : path
 
             setInterval(() => {
                 this.currentTime = moment().format('L LT')
@@ -148,6 +151,12 @@
     }
 
     .el-input__inner {
+        height: 60px !important;
+        font-size: 20px !important;
+    }
+
+    .big-button {
+        width: 120px !important;
         height: 60px !important;
         font-size: 20px !important;
     }

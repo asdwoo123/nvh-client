@@ -23,9 +23,10 @@
             height: 60px; font-size: 20px;">
                     {{ lamp.number }}
                 </el-button>
+                    <div :id="'l' + index" />
                 </Moveable>
             </template>
-            <img @click="checkX" v-if="product" style="width: 100%;"
+            <img v-if="product" style="width: 100%;"
                  :src='"../assets/model/" + product.productName + ".png"' alt="product-img">
         </div>
         <el-alert :closable="false" :title="$t('message.noProduct')"
@@ -58,18 +59,19 @@
             }
         },
         methods: {
-            checkX(event) {
-                console.log(event.offsetX, event.offsetY)
-            },
             positionSave() {
                 this.moveable.draggable = false
             },
             positionCancel() {
                 this.moveable.draggable = false
             },
-            handleDrag({ target, left, top }) {
-                target.style.left = `${left}px`;
-                target.style.top = `${top}px`;
+            handleDrag({ target, left, top } ) {
+                let id = target.children[1].id
+                id = id.substr(1)
+                id = parseInt(id)
+                const lamp = this.product.lamps[id]
+                lamp.left = left
+                lamp.top = top
             }
         }
     }

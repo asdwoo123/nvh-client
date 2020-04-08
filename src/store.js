@@ -1,8 +1,9 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { getDB } from '@/utils'
+import utils from '@/utils'
 
-const productList = getDB('productList')
+
+const productList = utils.getDB('productList')
 
 Vue.use(Vuex)
 

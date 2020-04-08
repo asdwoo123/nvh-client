@@ -3,7 +3,7 @@
         <el-popover placement="bottom" width="240" trigger="click">
             <div class="flex wrap">
                 <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '←', 0, '']"
-                     @click="numClick(n, field)"
+                     @click="numClick(n, field, type)"
                      class="flex center key-box">
                     {{n}}
                 </div>

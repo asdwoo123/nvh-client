@@ -1,30 +1,30 @@
 <template>
     <div style="height: 100%;">
         <div class="flex end-h" style="margin-bottom: 16px;">
-            <el-button class="big-button" type="info">
-                {{ $t('message.reset') }}
+            <el-button @click="reset" class="big-big-button" type="info">
+                {{ $t('reset') }}
             </el-button>
-            <el-button @click="save" class="big-button" type="info">
-                {{ $t('message.save') }}
+            <el-button @click="visible=true" class="big-big-button" type="info">
+                {{ $t('save') }}
             </el-button>
         </div>
 
         <div class="content-card-no-padding">
             <div class="flex between center-v" style="padding: 20px;">
-                <span style="font-size: 25px;">{{ $t('message.alertStopTime') }}</span>
-                <NumKeyBoard :num="field.num" field="num" :numClick="handleNumClick"/>
+                <span style="font-size: 25px;">{{ $t('alertStopTime') }}</span>
+                <NumKeyBoard :num="field.alertStopTime" field="alertStopTime" :numClick="handleNumClick"/>
             </div>
 
             <div class="flex between center-v" style="padding: 20px;">
-                <span style="font-size: 25px;">{{ $t('message.selectLanguage') }}</span>
+                <span style="font-size: 25px;">{{ $t('selectLanguage') }}</span>
                 <div>
-                    <el-button @click="importLang" class="big-button" type="info" plain>{{ $t('message.langImport')
-                        }}
+                    <el-button @click="importLang" class="big-button" type="info" plain>
+                        {{ $t('langImport') }}
                     </el-button>
                     <el-button @click="exportLang" class="big-button" style="margin-left: 20px;" type="info" plain>{{
-                        $t('message.langExport') }}
+                        $t('langExport') }}
                     </el-button>
-                    <el-select v-model="lang"
+                    <el-select v-model="field.lang"
                                style="margin-left: 20px;"
                     >
                         <el-option
@@ -37,17 +37,33 @@
                 </div>
             </div>
             <div class="flex between center-v" style="padding: 20px;">
-                <span style="font-size: 25px;">비밀번호 변경</span>
-                <el-button class="big-button" type="info" plain>변경</el-button>
+                <span style="font-size: 25px;">{{ $t('changePassword') }}</span>
+                <el-button @click="visible2=true" class="big-button" type="info" plain>변경</el-button>
             </div>
         </div>
         <!-- 여기서 부터 Dialog -->
-        <el-dialog title="비밀번호를 입력해 주세요" :visible.sync="visible">
+        <el-dialog :title="$t('enterPassword')" :visible.sync="visible">
             <div class="flex column center" style="height: 300px;">
                 <div class="flex" style="position: relative;">
                     <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
                                  width="350" height="60"/>
-                    <el-button style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;" type="info">OK</el-button>
+                    <el-button @click="saveConfig" style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;" type="info">OK</el-button>
+                </div>
+            </div>
+        </el-dialog>
+
+        <el-dialog :title="$t('enterPassword')" :visible.sync="visible2">
+            <div class="flex column center" style="height: 350px;">
+                <div class="flex" style="position: relative; width: 720px; margin-bottom: 40px;">
+                    <div style="font-size: 25px; margin-right: 44px;">현재 비밀번호</div>
+                    <NumKeyBoard :num="field.currentPwd" field="password" type="password" :numClick="handleNumClick"
+                                 width="350" height="60"/>
+                </div>
+                <div class="flex" style="position: relative; width: 720px;">
+                    <div style="font-size: 25px; margin-right: 20px;">변경할 비밀번호</div>
+                    <NumKeyBoard :num="field.changePwd" field="password" type="password" :numClick="handleNumClick"
+                                 width="350" height="60"/>
+                    <el-button @click="changePassword" style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;" type="info">OK</el-button>
                 </div>
             </div>
         </el-dialog>
@@ -55,13 +71,17 @@
 </template>
 
 <script>
-    import {showOpenDialog, showSaveDialog} from '@/utils'
     import NumKeyBoard from "@/components/NumKeyBoard";
-    import {getDB} from '@/utils'
+    import utils from '@/utils'
+    import i18n from "@/plugins/i18n";
+    const fs = require('fs')
 
     export default {
         name: "ConfigView",
         components: {NumKeyBoard},
+        created() {
+          this.reset()
+        },
         data: () => ({
             options: [
                 {
@@ -77,39 +97,84 @@
                     label: 'Polski'
                 }
             ],
-            lang: 'ko',
             visible: false,
             visible2: false,
             field: {
                 password: '',
-                num: '0'
+                alertStopTime: '0',
+                lang: '',
+                currentPwd: '',
+                changePwd: ''
             }
         }),
         methods: {
-            save() {
-                this.visible = true
+            saveConfig() {
+                if (this.field.password === utils.getDB('config').password) {
+                    utils.setDB('config', {
+                        alertStopTime: this.field.alertStopTime,
+                        lang: this.field.lang,
+                        password: this.field.password
+                    })
+                    i18n.locale = this.field.lang
+                    this.reset()
+                }
                 /*this.$message({
                     message: '저장되었습니다',
                     type: 'success'
                 })*/
             },
             async importLang() {
-                const path = await showOpenDialog()
-                console.log(path)
+                const path = await utils.showOpenDialog()
+                if (path.length > 0) {
+                    const message = utils.decodeXLSX(path[0])
+                    utils.setDB('message', message)
+                    console.log(utils.getDB('message'))
+                }
             },
             async exportLang() {
-                let columns = {}
-                const path = await showSaveDialog()
-                const messages = getDB('message')
-                const keys = Object.keys(messages)
+                try {
+                    const messages = utils.getDB('message')
+                    const path = await utils.showSaveDialog()
+                    const buffer = utils.encodeXLSX(messages)
+                    fs.writeFile(path, buffer, function (err) {
+                        console.log(err)
+                    })
+                } catch (e) {
+                    console.error(e)
+                }
             },
-            handleNumClick(n, field) {
+            handleNumClick(n, field, type) {
                 if (n === '←') {
                     this.field[field] = this.field[field].substr(0, this.field[field].length - 1)
-                    if (this.field[field] === '') this.field[field] = '0'
+                    if (this.field[field] === '' && type !== 'password') this.field[field] = '0'
                 } else if (n !== '' && this.field[field].length < 10) {
                     this.field[field] = (this.field[field] === '0') ? n + '' : this.field[field] + n
                 }
+            },
+            reset() {
+                const { alertStopTime, lang } = utils.getDB('config')
+
+                this.field = {
+                    password: '',
+                    alertStopTime,
+                    lang,
+                    currentPwd: '',
+                    changePwd: ''
+                }
+                this.visible = false
+                this.visible2 = false
+            },
+            changePassword() {
+                if (this.field.currentPwd === utils.getDB('config').password) {
+                    utils.setDB('config', {
+                        ...utils.getDB('config'),
+                        password: this.field.changePwd
+                    })
+                }
+
+                this.field.currentPwd = ''
+                this.field.changePwd = ''
+                this.visible2 = false
             }
         }
     }

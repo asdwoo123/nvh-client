@@ -1,11 +1,11 @@
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
-import { getDB } from '@/utils'
+import utils from '@/utils'
 
 Vue.use(VueI18n)
 
-const messages = getDB('message')
-const { lang } = getDB('config')
+const messages = utils.getDB('message')
+const { lang } = utils.getDB('config')
 
 
 const i18n = new VueI18n({

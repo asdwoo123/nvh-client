@@ -3,14 +3,14 @@
         <div class="header">
             <div class="flex end-v">
                 <el-menu :default-active="activeIndex" mode="horizontal" @select="handleSelect">
-                    <el-menu-item index="/auto">{{ $t('message.automation') }}</el-menu-item>
-                    <el-menu-item index="/manual">{{ $t('message.manual') }}</el-menu-item>
-                    <el-menu-item index="/io">{{ $t('message.io') }}</el-menu-item>
-                    <el-menu-item index="/config">{{ $t('message.configure') }}</el-menu-item>
+                    <el-menu-item index="/auto">{{ $t('automation') }}</el-menu-item>
+                    <el-menu-item index="/manual">{{ $t('manual') }}</el-menu-item>
+                    <el-menu-item index="/io">{{ $t('io') }}</el-menu-item>
+                    <el-menu-item index="/config">{{ $t('configure') }}</el-menu-item>
                 </el-menu>
                 <el-button @click="visible = true" type="info"
                            style="margin-left: 30px; margin-bottom: 20px; font-size: 20px;">
-                    {{ $t('message.selectModel') }}
+                    {{ $t('selectModel') }}
                 </el-button>
                 <div v-if="product" style="font-size: 20px; margin-left: 50px; margin-bottom: 27px;">
                     {{product.productName}}
@@ -41,8 +41,7 @@
 <script>
     import router from "@/router"
     import moment from "moment"
-    import {getDB} from '@/utils'
-    import '@/./serial'
+    import utils from '@/utils'
 
     export default {
         name: 'app',
@@ -51,7 +50,7 @@
             activeIndex: '/auto',
             currentTime: moment().format('L LT'),
             visible: false,
-            productList: getDB('productList')
+            productList: utils.getDB('productList')
         }),
         computed: {
             product() {
@@ -157,6 +156,13 @@
 
     .big-button {
         width: 120px !important;
+        height: 60px !important;
+        font-size: 20px !important;
+        text-align: center !important;
+    }
+
+    .big-big-button {
+        width: 180px !important;
         height: 60px !important;
         font-size: 20px !important;
     }

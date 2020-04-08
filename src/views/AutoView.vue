@@ -2,16 +2,16 @@
     <div class="h100 flex column center-v around" style="position: relative;">
         <el-button v-if="!moveable.draggable" style="width: 250px; height: 60px; font-size: 20px; position: absolute; top: 0; right: 0;"
                   @click="moveable.draggable = true" type="info">
-            {{ $t('message.changePosition') }}
+            {{ $t('changePosition') }}
         </el-button>
         <template v-else >
         <el-button style="width: 250px; height: 60px; font-size: 20px; position: absolute; top: 0; right: 0;"
                    @click="positionSave" type="info">
-            {{ $t('message.positionSave') }}
+            {{ $t('positionSave') }}
         </el-button>
         <el-button style="width: 250px; height: 60px; font-size: 20px; position: absolute; top: 80px; right: 0;"
                    @click="positionCancel" type="info">
-            {{ $t('message.cancel') }}
+            {{ $t('cancel') }}
         </el-button>
         </template>
 
@@ -29,14 +29,14 @@
             <img v-if="product" style="width: 100%;"
                  :src='"../assets/model/" + product.productName + ".png"' alt="product-img">
         </div>
-        <el-alert :closable="false" :title="$t('message.noProduct')"
+        <el-alert :closable="false" :title="$t('noProduct')"
                   type="error" effect="dark" style="height: 100px; width: 70%;"/>
     </div>
 </template>
 
 <script>
     import Moveable from 'vue-moveable';
-    import { getDB } from '@/utils'
+    import utils from '@/utils'
 
     export default {
         name: "AutoView",
@@ -44,7 +44,7 @@
             moveable: {
                 draggable: false
             },
-            productList: getDB('productList')
+            productList: utils.getDB('productList')
         }),
         components: {
             Moveable,

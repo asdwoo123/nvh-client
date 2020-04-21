@@ -1,12 +1,18 @@
 <template>
     <div style="height: 100%;">
-        <div class="flex end-h" style="margin-bottom: 16px;">
-            <el-button @click="reset" class="big-big-button" type="info">
-                {{ $t('reset') }}
+        <div class="flex between" style="margin-bottom: 16px;">
+            <el-button @click="visible3=true" class="big-big-button" type="info">
+                정보
             </el-button>
-            <el-button @click="visible=true" class="big-big-button" type="info">
-                {{ $t('save') }}
-            </el-button>
+
+            <div>
+                <el-button @click="reset" class="big-big-button" type="info">
+                    {{ $t('reset') }}
+                </el-button>
+                <el-button @click="visible=true" class="big-big-button" type="info">
+                    {{ $t('save') }}
+                </el-button>
+            </div>
         </div>
 
         <div class="content-card-no-padding">
@@ -47,7 +53,10 @@
                 <div class="flex" style="position: relative;">
                     <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
                                  width="350" height="60"/>
-                    <el-button @click="saveConfig" style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;" type="info">OK</el-button>
+                    <el-button @click="saveConfig"
+                               style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
+                               type="info">OK
+                    </el-button>
                 </div>
             </div>
         </el-dialog>
@@ -63,7 +72,24 @@
                     <div style="font-size: 25px; margin-right: 20px;">변경할 비밀번호</div>
                     <NumKeyBoard :num="field.changePwd" field="password" type="password" :numClick="handleNumClick"
                                  width="350" height="60"/>
-                    <el-button @click="changePassword" style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;" type="info">OK</el-button>
+                    <el-button @click="changePassword"
+                               style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
+                               type="info">OK
+                    </el-button>
+                </div>
+            </div>
+        </el-dialog>
+
+        <el-dialog :visible.sync="visible3">
+            <div class="flex column" style="height: 350px;">
+                <div class="flex between text-box">
+                    <div>IP</div>
+                    <div>{{ ipAddress }}</div>
+                </div>
+
+                <div class="flex between text-box">
+                    <div>MAC</div>
+                    <div>{{ macAddress }}</div>
                 </div>
             </div>
         </el-dialog>
@@ -74,13 +100,19 @@
     import NumKeyBoard from "@/components/NumKeyBoard";
     import utils from '@/utils'
     import i18n from "@/plugins/i18n";
+
     const fs = require('fs')
+    const macaddress = require('macaddress')
+    const ip = require('ip')
 
     export default {
         name: "ConfigView",
         components: {NumKeyBoard},
-        created() {
-          this.reset()
+        mounted() {
+            this.reset()
+            macaddress.one((err, mac) => {
+                if (!err) this.macAddress = mac
+            })
         },
         data: () => ({
             options: [
@@ -99,6 +131,9 @@
             ],
             visible: false,
             visible2: false,
+            visible3: false,
+            ipAddress: ip.address(),
+            macAddress: '',
             field: {
                 password: '',
                 alertStopTime: '0',
@@ -128,7 +163,6 @@
                 if (path.length > 0) {
                     const message = utils.decodeXLSX(path[0])
                     utils.setDB('message', message)
-                    console.log(utils.getDB('message'))
                 }
             },
             async exportLang() {
@@ -136,9 +170,7 @@
                     const messages = utils.getDB('message')
                     const path = await utils.showSaveDialog()
                     const buffer = utils.encodeXLSX(messages)
-                    fs.writeFile(path, buffer, function (err) {
-                        console.log(err)
-                    })
+                    fs.writeFile(path, buffer)
                 } catch (e) {
                     console.error(e)
                 }
@@ -152,7 +184,7 @@
                 }
             },
             reset() {
-                const { alertStopTime, lang } = utils.getDB('config')
+                const {alertStopTime, lang} = utils.getDB('config')
 
                 this.field = {
                     password: '',
@@ -180,6 +212,12 @@
     }
 </script>
 
-<style scoped>
+<style scoped lang="less">
+    .text-box {
+        margin-bottom: 40px;
 
+        div {
+            font-size: 25px;
+        }
+    }
 </style>

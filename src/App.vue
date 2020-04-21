@@ -8,49 +8,34 @@
                     <el-menu-item index="/io">{{ $t('io') }}</el-menu-item>
                     <el-menu-item index="/config">{{ $t('configure') }}</el-menu-item>
                 </el-menu>
-                <el-button @click="visible = true" type="info"
-                           style="margin-left: 30px; margin-bottom: 20px; font-size: 20px;">
-                    {{ $t('selectModel') }}
-                </el-button>
-                <div v-if="product" style="font-size: 20px; margin-left: 50px; margin-bottom: 27px;">
-                    {{product.productName}}
-                </div>
+            </div>
+            <div v-if="product" class="product-title">
+                <span>
+                {{product.productName}}
+                </span>
             </div>
             <div class="flex center-v">
-                <div style="font-size: 20px; margin-right: 30px;">{{ currentTime }}</div>
-                <img height="50" src="./assets/biglogo.jpg" alt="logo">
+                <div class="time-view">{{ currentTime }}</div>
+                <img class="logo" src="./assets/biglogo.jpg" alt="logo">
             </div>
         </div>
         <div class="content">
             <router-view/>
         </div>
-
-        <el-dialog :visible.sync="visible">
-            <el-button style="width: 100%; height: 60px; margin: 0 0 16px 0; font-size: 20px;" type="primary"
-                       v-bind:key="index" @click="setProduct(productName)"
-                       v-for="({productName}, index) in productList" plain>
-                {{ productName }}
-                <span v-if="product" style="float: right;">
-                        <i v-if="product.productName === productName" class="el-icon-check"/>
-                    </span>
-            </el-button>
-        </el-dialog>
     </div>
 </template>
 
 <script>
     import router from "@/router"
     import moment from "moment"
-    import utils from '@/utils'
+    import '@/service/mcprotocol'
 
     export default {
         name: 'app',
         router,
         data: () => ({
             activeIndex: '/auto',
-            currentTime: moment().format('L LT'),
-            visible: false,
-            productList: utils.getDB('productList')
+            currentTime: moment().format('L LT')
         }),
         computed: {
             product() {
@@ -64,10 +49,6 @@
                         throw error
                     }
                 })
-            },
-            setProduct(productName) {
-                this.$store.commit('setProduct', productName)
-                this.visible = false
             }
         },
         mounted() {
@@ -100,15 +81,32 @@
         background-color: #ffffff;
         border-bottom: 1px solid @border-color;
 
+        @media screen and (max-width: 800px) {
+            height: 50px;
+            padding: 0 15px;
+        }
+
         .el-menu-item {
             font-size: 20px !important;
             height: 70px !important;
+
+            @media screen and (max-width: 800px) {
+                font-size: 12px !important;
+                height: 40px !important;
+                padding: 0 10px !important;
+            }
         }
     }
 
     .content {
         padding: 20px;
         height: calc(100% - 121px);
+
+        @media screen and (max-width: 800px) {
+            padding: 10px;
+
+            height: calc(100% - 61px);
+        }
     }
 
     .content-card {
@@ -159,11 +157,54 @@
         height: 60px !important;
         font-size: 20px !important;
         text-align: center !important;
+
+        @media screen and (max-width: 800px) {
+            width: 48px !important;
+            height: 24px !important;
+            font-size: 8px !important;
+        }
     }
 
     .big-big-button {
         width: 180px !important;
         height: 60px !important;
         font-size: 20px !important;
+
+        @media screen and (max-width: 800px) {
+            width: 72px !important;
+            height: 24px !important;
+            font-size: 8px !important;
+        }
     }
+
+    .time-view {
+        font-size: 20px;
+        margin-right: 30px;
+
+        @media screen and (max-width: 800px) {
+            font-size: 15px;
+            margin-right: 15px;
+        }
+    }
+
+    .logo {
+        height: 50px;
+
+        @media screen and (max-width: 800px) {
+            height: 30px;
+        }
+    }
+
+    .product-title {
+        font-size: 25px;
+        display: flex;
+        align-items: flex-end;
+        margin-bottom: 23px;
+        justify-self: center;
+        @media screen and (max-width: 800px) {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+    }
+
 </style>

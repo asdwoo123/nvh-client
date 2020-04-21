@@ -14,11 +14,12 @@
   },
   "main": "background.js",
   "dependencies": {
+    "auto-launch": "^5.0.5",
     "core-js": "^2.6.5",
-    "csv-stringify": "^5.3.6",
     "element-ui": "^2.4.5",
     "lodash": "^4.17.15",
     "lowdb": "^1.0.0",
+    "macaddress": "^0.2.9",
     "mcprotocol": "^0.1.1",
     "modbus-serial": "^7.8.1",
     "moment": "^2.24.0",

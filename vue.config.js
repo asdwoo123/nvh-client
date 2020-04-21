@@ -1,7 +1,7 @@
 module.exports = {
     pluginOptions: {
         electronBuilder: {
-            externals: ['modbus-serial']
+            externals: ['modbus-serial', 'mcprotocol']
         }
     }
 }

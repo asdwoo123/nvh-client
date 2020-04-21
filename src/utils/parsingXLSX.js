@@ -11,7 +11,6 @@ export default {
          return [key, ...values.filter(d => d.key = key).map(d => d[key])]
         })
         const data = [data1, ...v]
-        console.log(data)
         return xlsx.build([{name: 'myLanguage', data}])
     },
     decodeXLSX(path) {
@@ -21,7 +20,7 @@ export default {
         keys.shift()
         keys.forEach((key, index) => {
             data[key] = {}
-        const values = workSheetsData.slice(1, workSheetsData.length - 1)
+        const values = workSheetsData.slice(1, workSheetsData.length)
         values.forEach(w => {
             data[key][w[0]] = w[index + 1]
         })

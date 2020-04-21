@@ -6,6 +6,11 @@ import {
   /* installVueDevtools */
 } from 'vue-cli-plugin-electron-builder/lib'
 const isDevelopment = process.env.NODE_ENV !== 'production'
+const AutoLaunch = require('auto-launch')
+
+const autoLauncher = new AutoLaunch({
+  name: 'SEOJUNENG-Client'
+});
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -16,7 +21,7 @@ protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true
 
 function createWindow () {
   // Create the browser window.
-  win = new BrowserWindow({ width: 800, height: 600, webPreferences: {
+  win = new BrowserWindow({ width: 800, height: 480, webPreferences: {
     nodeIntegration: true
   } })
 
@@ -76,7 +81,15 @@ app.on('ready', async () => {
   }
   createWindow()
 
-  if (!isDevelopment) win.setFullScreen(true)
+  if (!isDevelopment) {
+    win.setFullScreen(true)
+    autoLauncher.isEnabled()
+        .then((launch) => {
+          if (!launch) {
+            autoLauncher.enable();
+          }
+        });
+  }
 })
 
 // Exit cleanly on request from parent process in development mode.

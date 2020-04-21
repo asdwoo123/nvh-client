@@ -1,6 +1,6 @@
 <template>
     <div style="height: 100%;">
-        <div class="flex end-h" style="margin-bottom: 16px;">
+        <div class="flex end-h" style="margin-bottom: 10px;">
             <el-button @click="prev" class="big-big-button" type="info" icon="el-icon-arrow-left">{{ $t('previous') }}</el-button>
             <el-button @click="next" class="big-big-button" type="info">{{ $t('next') }}
                 <i class="el-icon-arrow-right"/>
@@ -8,9 +8,9 @@
         </div>
         <div class="content-card flex column wrap">
 
-                <div class="flex center-v io-content" v-bind:key="port" v-for="port in IOItems">
-                    <el-button type="success">{{port}}</el-button>
-                    <span>{{$t(`${port}`)}}</span>
+                <div class="flex center-v io-content" v-bind:key="index" v-for="(port, index) in IOBoard">
+                    <el-button :type="(port.portValue === '0') ? 'info' : 'success'">{{port.portName}}</el-button>
+                    <span>{{$t(`${port.portName}`)}}</span>
                 </div>
 
         </div>
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-    import { InputBoard, OutputBoard } from '@/config'
+    const PerPage = 32
 
     export default {
         name: "IOView",
@@ -26,12 +26,16 @@
             page: 1
         }),
         computed: {
-            IOItems() {
-                const InputMaxPage = Math.ceil(InputBoard().length / 27) + 1
-                if (this.page < InputMaxPage) {
-                    return InputBoard().slice((this.page - 1) * 27, (this.page) * 27)
+            InputMaxPage() {
+                const { inputPort } = this.$store.state
+                return Math.ceil(inputPort.length / PerPage) + 1
+            },
+            IOBoard() {
+                const { inputPort, outputPort } = this.$store.state
+                if (this.page < this.InputMaxPage) {
+                    return inputPort.slice((this.page - 1) * PerPage, this.page * PerPage)
                 } else {
-                    return OutputBoard().slice((this.page - InputMaxPage) * 27, (this.page - InputMaxPage + 1) * 27)
+                    return outputPort.slice((this.page - this.InputMaxPage) * PerPage, (this.page - this.InputMaxPage + 1) * PerPage)
                 }
             }
         },
@@ -40,7 +44,8 @@
                 if (this.page !== 1) this.page -= 1
             },
             next() {
-                const maxPage = Math.ceil((InputBoard().length + OutputBoard().length) / 27)
+                const { inputPort, outputPort } = this.$store.state
+                const maxPage = Math.ceil((inputPort.length + outputPort.length) / PerPage)
                 if (this.page !== maxPage) this.page += 1
             }
         }

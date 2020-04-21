@@ -1,41 +1,52 @@
+import {plcConfig} from '@/config'
+import store from '@/store'
+
 const mc = require('mcprotocol')
 const conn = new mc
 let isConnect = false
 
-var variables = { TEST1: 'D0,5', 	// 5 words starting at D0
-    TEST2: 'M6990,28', 			// 28 bits at M6990
-    TEST3: 'CN199,2',			// ILLEGAL as CN199 is 16-bit, CN200 is 32-bit, must request separately
-    TEST4: 'R2000,2',			// 2 words at R2000
-    TEST5: 'X034',				// Simple input
-    TEST6: 'D6000.1,20',			// 20 bits starting at D6000.1
-    TEST7: 'D6001.2',				// Single bit at D6001
-    TEST8: 'S4,2',				// 2 bits at S4
-    TEST9: 'RFLOAT5000,40'		// 40 floating point numbers at R5000
-};
+const {host, port, inputPort, outputPort} = plcConfig()
 
-conn.initiateConnection({port: 3000, host: '192.168.3.39', ascii: false}, connected);
+const variables = {};
+
+[inputPort, outputPort].forEach((port, index) => {
+    variables[(index === 0) ? 'inputPort' : 'outputPort'] = port[0] + ',' + port[1]
+})
+
+conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)
 
 function connected(err) {
-    if (typeof(err) !== "undefined") {
-        conn.initiateConnection({port: 3000, host: '192.168.3.39', ascii: false}, connected);
+    if (typeof (err) !== "undefined") {
+        /*conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)*/
     }
-    conn.setTranslationCB(function(tag) {return variables[tag];}); 	// This sets the "translation" to allow us to work with object names defined in our app not in the module
-    conn.addItems(['TEST1', 'TEST4']);
-    conn.readAllItems(valuesReady);
+    isConnect = true
+
+    conn.setTranslationCB(function (tag) {
+        return variables[tag];
+    }); 	// This sets the "translation" to allow us to work with object names defined in our app not in the module
+    conn.addItems(Object.keys(variables))
+    setInterval(() => {
+        conn.readAllItems(valuesReady)
+    }, 500)
 }
 
 function valuesReady(anythingBad, values) {
     if (anythingBad) return
+
+    values[0].forEach((value, index) => {
+        store.state.inputPort[index].portValue = value
+    })
+
+    values[1].forEach((value, index) => {
+        store.state.outputPort[index].portValue = value
+    })
 }
 
 function valuesWritten(anythingBad) {
     if (anythingBad) return
 }
 
-export const writePLC() {
-    conn.writeItems('TEST4', [ true ], valuesWritten);
-}
-
-export const writesPLC() {
-    conn.writeItems(['TEST4'], [ true ], valuesWritten);
+export function writePLC(ports, value) {
+    if (!isConnect) return
+    conn.writeItems(ports, [value], valuesWritten);
 }

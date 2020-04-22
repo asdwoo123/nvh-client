@@ -4,11 +4,6 @@ import {range} from 'lodash'
 import utils from '@/utils'
 import {plcConfig} from '@/config'
 
-const io = {}
-
-Object.entries(plcConfig().io).forEach(v => {
-    io[v[0]] = range(v[1][1]).map(() => '0')
-})
 
 // eslint-disable-next-line no-unexpected-multiline
 const [inputPort, outputPort] = [plcConfig().inputPort, plcConfig().outputPort]
@@ -30,9 +25,9 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         product: null,
-        io,
         inputPort,
-        outputPort
+        outputPort,
+        alert: 0
     },
     mutations: {
         setProduct(state, productName) {

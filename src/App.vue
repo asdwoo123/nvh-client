@@ -3,10 +3,9 @@
         <div class="header">
             <div class="flex end-v">
                 <el-menu :default-active="activeIndex" mode="horizontal" @select="handleSelect">
-                    <el-menu-item index="/auto">{{ $t('automation') }}</el-menu-item>
-                    <el-menu-item index="/manual">{{ $t('manual') }}</el-menu-item>
-                    <el-menu-item index="/io">{{ $t('io') }}</el-menu-item>
-                    <el-menu-item index="/config">{{ $t('configure') }}</el-menu-item>
+                    <el-menu-item v-bind:key="route.name" v-for="route in routes" :index="route.path">
+                        {{ $t(`${route.name}`) }}
+                    </el-menu-item>
                 </el-menu>
             </div>
             <div v-if="product" class="product-title">
@@ -29,13 +28,15 @@
     import router from "@/router"
     import moment from "moment"
     import '@/service/mcprotocol'
+    import {routes} from '@/config'
 
     export default {
         name: 'app',
         router,
         data: () => ({
             activeIndex: '/auto',
-            currentTime: moment().format('L LT')
+            currentTime: moment().format('L LT'),
+            routes: routes().slice(1)
         }),
         computed: {
             product() {
@@ -52,12 +53,14 @@
             }
         },
         mounted() {
-            const path = this.$route.path
-            this.activeIndex = (path === '/') ? '/auto' : path
-
             setInterval(() => {
                 this.currentTime = moment().format('L LT')
             }, 1000)
+
+            setTimeout(() => {
+                const path = this.$route.path
+                this.activeIndex = (path === '/') ? '/auto' : path
+            }, 200)
         }
     }
 </script>
@@ -107,6 +110,16 @@
 
             height: calc(100% - 61px);
         }
+    }
+
+    .card {
+        background: #ffffff;
+        border: 1px solid #d2d2d2;
+        padding: 20px;
+    }
+
+    .card::-webkit-scrollbar {
+        display: none;
     }
 
     .content-card {

@@ -9,7 +9,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 const AutoLaunch = require('auto-launch')
 
 const autoLauncher = new AutoLaunch({
-  name: 'SEOJUNENG-Client'
+  name: 'nvh-client'
 });
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -21,7 +21,7 @@ protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true
 
 function createWindow () {
   // Create the browser window.
-  win = new BrowserWindow({ width: 800, height: 480, webPreferences: {
+  win = new BrowserWindow({ width: 1024, height: 768, webPreferences: {
     nodeIntegration: true
   } })
 
@@ -83,6 +83,7 @@ app.on('ready', async () => {
 
   if (!isDevelopment) {
     win.setFullScreen(true)
+    win.setMenuBarVisibility(false)
     autoLauncher.isEnabled()
         .then((launch) => {
           if (!launch) {

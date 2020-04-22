@@ -1,5 +1,9 @@
 {
   "name": "nvh-client",
+  "author": {
+    "name": "Ansangkyu",
+    "email": "asdwoo123@naver.com"
+  },
   "version": "0.1.0",
   "private": true,
   "scripts": {

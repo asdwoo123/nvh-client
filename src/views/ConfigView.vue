@@ -48,33 +48,35 @@
             </div>
         </div>
         <!-- 여기서 부터 Dialog -->
-        <el-dialog :title="$t('enterPassword')" :visible.sync="visible">
+        <el-dialog :title="$t('enterPassword')" :visible="visible">
             <div class="flex column center" style="height: 300px;">
                 <div class="flex" style="position: relative;">
                     <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
                                  width="350" height="60"/>
-                    <el-button @click="saveConfig"
-                               style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
-                               type="info">OK
+                    <el-button
+                            style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
+                            type="info" @click="saveConfig">
+                        OK
                     </el-button>
                 </div>
             </div>
         </el-dialog>
 
-        <el-dialog :title="$t('enterPassword')" :visible.sync="visible2">
+        <el-dialog :title="$t('enterPassword')" :visible.sync="visible2" width="800px">
             <div class="flex column center" style="height: 350px;">
                 <div class="flex" style="position: relative; width: 720px; margin-bottom: 40px;">
                     <div style="font-size: 25px; margin-right: 44px;">현재 비밀번호</div>
-                    <NumKeyBoard :num="field.currentPwd" field="password" type="password" :numClick="handleNumClick"
+                    <NumKeyBoard :num="field.currentPwd" field="currentPwd" type="password" :numClick="handleNumClick"
                                  width="350" height="60"/>
                 </div>
                 <div class="flex" style="position: relative; width: 720px;">
                     <div style="font-size: 25px; margin-right: 20px;">변경할 비밀번호</div>
-                    <NumKeyBoard :num="field.changePwd" field="password" type="password" :numClick="handleNumClick"
+                    <NumKeyBoard :num="field.changePwd" field="changePwd" type="password" :numClick="handleNumClick"
                                  width="350" height="60"/>
                     <el-button @click="changePassword"
                                style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
-                               type="info">OK
+                               type="info">
+                        OK
                     </el-button>
                 </div>
             </div>
@@ -135,9 +137,9 @@
             ipAddress: ip.address(),
             macAddress: '',
             field: {
-                password: '',
                 alertStopTime: '0',
                 lang: '',
+                password: '',
                 currentPwd: '',
                 changePwd: ''
             }
@@ -148,15 +150,15 @@
                     utils.setDB('config', {
                         alertStopTime: this.field.alertStopTime,
                         lang: this.field.lang,
-                        password: this.field.password
+                        password: utils.getDB('config').password
                     })
                     i18n.locale = this.field.lang
                     this.reset()
-                }
-                /*this.$message({
+                    /*this.$message({
                     message: '저장되었습니다',
                     type: 'success'
                 })*/
+                }
             },
             async importLang() {
                 const path = await utils.showOpenDialog()
@@ -187,9 +189,9 @@
                 const {alertStopTime, lang} = utils.getDB('config')
 
                 this.field = {
-                    password: '',
                     alertStopTime,
                     lang,
+                    password: '',
                     currentPwd: '',
                     changePwd: ''
                 }

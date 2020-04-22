@@ -5,7 +5,7 @@ const mc = require('mcprotocol')
 const conn = new mc
 let isConnect = false
 
-const {host, port, inputPort, outputPort} = plcConfig()
+const {host, port, inputPort, outputPort, alert} = plcConfig()
 
 const variables = {};
 
@@ -13,10 +13,13 @@ const variables = {};
     variables[(index === 0) ? 'inputPort' : 'outputPort'] = port[0] + ',' + port[1]
 })
 
-conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)
+variables.alert = alert[0] + ',' + alert[1]
+
+/*conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)*/
 
 function connected(err) {
     if (typeof (err) !== "undefined") {
+        console.log(err)
         /*conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)*/
     }
     isConnect = true
@@ -39,6 +42,10 @@ function valuesReady(anythingBad, values) {
 
     values[1].forEach((value, index) => {
         store.state.outputPort[index].portValue = value
+    })
+
+    values[2].forEach((value) => {
+        store.state.alert = value
     })
 }
 

@@ -1,62 +1,17 @@
 import low from 'lowdb'
 import LocalStorage from 'lowdb/adapters/LocalStorage'
+import { range } from 'lodash'
 
 const adapter = new LocalStorage('db')
 const db = low(adapter)
 
-const productList = [
-    {
-        productName: 'LHD HEV - 84260CZ000',
-        lamps: [
-            {
-                number: 1,
-                left: 46,
-                top: 379
-            },
-            {
-                number: 2,
-                left: 455,
-                top: 501
-            },
-            {
-                number: 3,
-                left: 110,
-                top: 561
-            },
-            {
-                number: 4,
-                left: 392,
-                top: 219
-            },
-            {
-                number: 5,
-                left: 20,
-                top: 442
-            }
-        ]
-    },
-    {
-        productName: 'LHD PHEV - 84260CZ200'
-    },
-    {
-        productName: 'LHD SHORT BODY - 84260N7000'
-    },
-    {
-        productName: 'LHD SHORT BODY - 84260N7200'
-    },
-    {
-        productName: 'RHD HEV - 84260CZ920'
-    },
-    {
-        productName: 'RHD PHEV - 84260CZ950'
-    },
-    {
-        productName: 'RHD SHORT BODY - 84260N7900'
-    },
-    {
-        productName: 'RHD SHORT BODY - 84260N7910'
-    }
-]
+const LHD = ['LHD HEV - 84260CZ000', 'LHD PHEV - 84260CZ200', 'LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7200']
+    .map(name => ({ productName: name, type: 'LHD', lamps: range(22).map(n => ({ number: n + 1, left: 0, top: 0 })) }))
+
+const RHD = ['RHD HEV - 84260CZ920', 'RHD PHEV - 84260CZ950', 'RHD SHORT BODY - 84260N7900', 'RHD SHORT BODY - 84260N7910']
+    .map(name => ({ productName: name, type: 'RHD', lamps: range(20).map(n => ({ number: n + 1, left: 0, top: 0 })) }))
+
+const productList = LHD.concat(RHD)
 
 const message = {
     ko: {
@@ -130,6 +85,7 @@ db.defaults({
     config
 }).write()
 
+/*db.set('productList', productList).write()*/
 
 export default {
     getDB(name) {

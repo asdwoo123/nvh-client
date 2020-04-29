@@ -1,9 +1,14 @@
 <template>
     <div class="h100 flex column center-v around" style="position: relative;">
-        <el-button class="select-btn" @click="visible = true" type="info">
+        <el-button class="select-btn" @click="visible3 = true" type="info">
             {{ $t('selectModel') }}
         </el-button>
-        <div v-if="product" style="position: absolute; top: 0; right: 0;">
+        <div style="position: absolute; top: 0; right: 0;">
+            <el-button :type="(air) ? 'success' : 'info'" @click="mainAirOnOff" style="width: 250px; height: 60px; font-size: 20px;">
+                {{ $t('mainAir') }}
+            </el-button>
+        </div>
+        <div v-if="product" style="position: absolute; top: 80px; right: 0;">
             <el-button v-if="!moveable.draggable"
                        class="move-btn"
                        @click="moveable.draggable = true" type="info">
@@ -26,7 +31,7 @@
                           style="z-index: 1; position: absolute;"
                           v-for="(lamp, index) in lamps"
                           v-bind:style="{ top: lamp.top + 'px', left: lamp.left + 'px' }">
-                    <el-button circle type="danger" style="width: 60px;
+                    <el-button circle :type="(lampCheck[index]) ? 'success' : 'danger'" style="width: 60px;
             height: 60px; font-size: 20px;">
                         {{ lamp.number }}
                     </el-button>
@@ -36,9 +41,6 @@
             <img v-if="product" style="width: 100%;"
                  :src='"../assets/model/" + product.productName + ".png"' alt="product-img">
         </div>
-        <el-alert :closable="false" :title="$t(`${message[alert]}`)"
-                  type="error" effect="dark" class="alert-bar"/>
-
         <el-dialog :visible.sync="visible">
             <el-button style="width: 100%; height: 60px; margin: 0 0 16px 0; font-size: 20px;" type="primary"
                        v-bind:key="index" @click="setProduct(productName, index)"
@@ -50,7 +52,7 @@
             </el-button>
         </el-dialog>
 
-        <el-dialog :title="$t('enterPassword')" :visible="visible2" width="700">
+        <el-dialog :title="$t('enterPassword')" :visible.sync="visible2" width="700">
             <div class="flex column center" style="height: 300px;">
                 <div class="flex" style="position: relative;">
                     <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
@@ -63,14 +65,28 @@
                 </div>
             </div>
         </el-dialog>
+
+        <el-dialog :title="$t('enterPassword')" :visible.sync="visible3" width="700">
+            <div class="flex column center" style="height: 300px;">
+                <div class="flex" style="position: relative;">
+                    <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
+                                 width="350" height="60"/>
+                    <el-button
+                            style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
+                            type="info" @click="showModeChange">
+                        OK
+                    </el-button>
+                </div>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
 <script>
     import Moveable from 'vue-moveable';
     import utils from '@/utils'
-    import {alertMessage} from '@/config'
     import NumKeyBoard from "@/components/NumKeyBoard";
+    import {changeMode, mainAirOn, mainAirOff} from '@/service/mcprotocol'
 
     export default {
         name: "AutoView",
@@ -81,7 +97,7 @@
             productList: utils.getDB('productList'),
             visible: false,
             visible2: false,
-            message: alertMessage(),
+            visible3: false,
             field: {
                 password: ''
             }
@@ -98,8 +114,17 @@
                 if (!this.product) return
                 return this.productList.find(x => x.productName === this.product.productName).lamps
             },
-            alert() {
-                return this.$store.state.alert
+            lampCheck() {
+                if (this.product) {
+                    const type = this.product.type
+                    if (type === 'LHD') return this.$store.state.lhdSwitch
+                    else return this.$store.state.rhdSwitch
+                } else {
+                    return []
+                }
+            },
+            air() {
+                return this.$store.state.mainAir
             }
         },
         methods: {
@@ -123,6 +148,12 @@
             positionCancel() {
                 this.moveable.draggable = false
             },
+            showModeChange() {
+                if (this.field.password === utils.getDB('config').password) {
+                    this.visible3 = false
+                    this.visible = true
+                }
+            },
             handleDrag({target, left, top}) {
                 let id = target.children[1].id
                 id = id.substr(1)
@@ -133,8 +164,8 @@
             },
             setProduct(productName, index) {
                 this.$store.commit('setProduct', productName)
-                console.log(index)
                 this.visible = false
+                changeMode(index)
             },
             handleNumClick(n, field, type) {
                 if (n === '←') {
@@ -142,6 +173,13 @@
                     if (this.field[field] === '' && type !== 'password') this.field[field] = '0'
                 } else if (n !== '' && this.field[field].length < 10) {
                     this.field[field] = (this.field[field] === '0') ? n + '' : this.field[field] + n
+                }
+            },
+            mainAirOnOff() {
+                if (this.air) {
+                    mainAirOff()
+                } else {
+                    mainAirOn()
                 }
             }
         }
@@ -160,14 +198,7 @@
         }
     }
 
-    .alert-bar {
-        height: 100px;
-        width: 70%;
 
-        @media screen and (max-width: 800px) {
-            height: 50px !important;
-        }
-    }
 
     .move-btn {
         width: 250px !important;

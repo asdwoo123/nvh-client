@@ -9,7 +9,7 @@
         <div class="content-card flex column wrap">
 
                 <div class="flex center-v io-content" v-bind:key="index" v-for="(port, index) in IOBoard">
-                    <el-button :type="(port.portValue === '0') ? 'info' : 'success'">{{port.portName}}</el-button>
+                    <el-button :type="(port.portValue) ? 'success' : 'info'">{{port.portName}}</el-button>
                     <span>{{$t(`${port.portName}`)}}</span>
                 </div>
 

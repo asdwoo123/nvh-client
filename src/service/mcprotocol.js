@@ -1,59 +1,87 @@
-import {plcConfig} from '@/config'
+import {plcConfig} from '@/config/index2'
 import store from '@/store'
+import {range} from 'lodash'
 
 const mc = require('mcprotocol')
 const conn = new mc
-let isConnect = false
 
-const {host, port, inputPort, outputPort, alert} = plcConfig()
+
+const {host, port} = plcConfig()
 
 const variables = {};
 
-[inputPort, outputPort].forEach((port, index) => {
-    variables[(index === 0) ? 'inputPort' : 'outputPort'] = port[0] + ',' + port[1]
+const portList = ['inputPort', 'outputPort', /*'lhdSwitch',*/ 'rhdSwitch', 'lhdLeft', 'lhdRight', 'rhdLeft', 'rhdRight', 'mainAir', 'stop']
+
+portList.forEach(port => {
+    variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
 })
 
-variables.alert = alert[0] + ',' + alert[1]
+const cylinders = range(17).map(n => 'cylinder' + (n + 1))
 
-/*conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)*/
+range(17).forEach(n => {
+    variables['cylinder' + (n + 1)] = 'M' + (134 + n) + ',1'
+})
+
+variables.mode = 'M336,8'
+
+conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)
 
 function connected(err) {
-    if (typeof (err) !== "undefined") {
-        console.log(err)
-        /*conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)*/
-    }
-    isConnect = true
+    if (!err) store.state.connect = true
 
     conn.setTranslationCB(function (tag) {
         return variables[tag];
     }); 	// This sets the "translation" to allow us to work with object names defined in our app not in the module
-    conn.addItems(Object.keys(variables))
+
+    conn.addItems(portList)
+
     setInterval(() => {
         conn.readAllItems(valuesReady)
-    }, 500)
+    }, 1000)
 }
 
 function valuesReady(anythingBad, values) {
     if (anythingBad) return
 
-    values[0].forEach((value, index) => {
-        store.state.inputPort[index].portValue = value
+    values.outputPort.shift()
+
+    portList.forEach((port) => {
+        if (values[port].length > 1) {
+            values[port].forEach((value, index) => {
+                if (port === 'inputPort' || port === 'outputPort') {
+                    store.state[port][index].portValue = value
+                } else {
+                    store.state[port][index] = value
+                }
+            })
+        } else {
+            store.state[port] = values[port]
+        }
     })
 
-    values[1].forEach((value, index) => {
-        store.state.outputPort[index].portValue = value
-    })
-
-    values[2].forEach((value) => {
-        store.state.alert = value
-    })
 }
 
 function valuesWritten(anythingBad) {
-    if (anythingBad) return
+    if (anythingBad) console.log(anythingBad)
 }
 
-export function writePLC(ports, value) {
-    if (!isConnect) return
-    conn.writeItems(ports, [value], valuesWritten);
+export function cylinderOn(index) {
+    conn.writeItems(cylinders[index], true, valuesWritten);
 }
+
+export function cylinderOff(index) {
+    conn.writeItems(cylinders[index], false, valuesWritten);
+}
+
+export function changeMode(index) {
+    conn.writeItems(['mode'], range(8).map(n => (n === index)), valuesWritten);
+}
+
+export function mainAirOn() {
+    conn.writeItems('mainAir', true, valuesWritten);
+}
+
+export function mainAirOff() {
+    conn.writeItems('mainAir', false, valuesWritten);
+}
+

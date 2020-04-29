@@ -1,8 +1,13 @@
 {
   "name": "nvh-client",
+  "description": "SEOJUNENG NVH CLIENT",
+  "homepage": "https://github.com/asdwoo123/nvh-client",
   "author": {
     "name": "Ansangkyu",
     "email": "asdwoo123@naver.com"
+  },
+  "repository": {
+    "url": "https://github.com/asdwoo123/nvh-client"
   },
   "version": "0.1.0",
   "private": true,

@@ -48,7 +48,7 @@
             </div>
         </div>
         <!-- 여기서 부터 Dialog -->
-        <el-dialog :title="$t('enterPassword')" :visible="visible">
+        <el-dialog :title="$t('enterPassword')" :visible.sync="visible">
             <div class="flex column center" style="height: 300px;">
                 <div class="flex" style="position: relative;">
                     <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"

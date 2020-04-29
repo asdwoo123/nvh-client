@@ -21,6 +21,7 @@
         <div class="content">
             <router-view/>
         </div>
+        <AlertBar />
     </div>
 </template>
 
@@ -28,10 +29,12 @@
     import router from "@/router"
     import moment from "moment"
     import '@/service/mcprotocol'
-    import {routes} from '@/config'
+    import {routes} from '@/config/index2'
+    import AlertBar from "@/components/AlertBar";
 
     export default {
         name: 'app',
+        components: {AlertBar},
         router,
         data: () => ({
             activeIndex: '/auto',
@@ -79,7 +82,7 @@
     .header {
         display: flex;
         justify-content: space-between;
-        height: 80px;
+        height: 100px;
         padding: 0 30px;
         background-color: #ffffff;
         border-bottom: 1px solid @border-color;
@@ -90,8 +93,8 @@
         }
 
         .el-menu-item {
-            font-size: 20px !important;
-            height: 70px !important;
+            font-size: 30px !important;
+            height: 80px !important;
 
             @media screen and (max-width: 800px) {
                 font-size: 12px !important;
@@ -102,8 +105,8 @@
     }
 
     .content {
-        padding: 20px;
-        height: calc(100% - 121px);
+        padding: 20px 20px 0;
+        height: calc(100% - 241px);
 
         @media screen and (max-width: 800px) {
             padding: 10px;
@@ -191,7 +194,7 @@
     }
 
     .time-view {
-        font-size: 20px;
+        font-size: 25px;
         margin-right: 30px;
 
         @media screen and (max-width: 800px) {
@@ -209,10 +212,10 @@
     }
 
     .product-title {
-        font-size: 25px;
+        font-size: 30px;
         display: flex;
         align-items: flex-end;
-        margin-bottom: 23px;
+        margin-bottom: 30px;
         justify-self: center;
         @media screen and (max-width: 800px) {
             font-size: 15px;

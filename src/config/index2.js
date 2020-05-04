@@ -35,10 +35,11 @@ export const plcConfig = () => {
         port: 3000,
         io: {sol: [32, 66]},
         inputPort: ['X0000', 80],
-        outputPort: ['Y117'/*'Y0050'*/, 33],
+        outputPort: ['Y117', 33],
         test: ['M134', 17],
-        lhdSwitch: ['M0168', 22],
-        rhdSwitch: ['M0210', 20],
+        /*lhdSwitch: ['M168', 22],
+        rhdSwitch: ['M210', 20],
+        stop: ['M201', 1],*/
         lhdLeft: ['X0001', 1],
         lhdRight: ['X0003', 1],
         rhdLeft: ['X0002', 1],
@@ -46,6 +47,9 @@ export const plcConfig = () => {
         mode: ['M336', 8],
         manual: ['M0002', 1],
         mainAir: ['M300', 1],
-        stop: ['M201', 1]
+        switchAndStop: ['M168', 62],
+        cylinderError: ['M358', 1],
+        cycleTime: ['D1010', 1],
+        total: ['D100', 1],
     }
 }

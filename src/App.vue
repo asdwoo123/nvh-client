@@ -28,7 +28,7 @@
 <script>
     import router from "@/router"
     import moment from "moment"
-    import '@/service/mcprotocol'
+    import {manualOn, manualOff, yellowOn, yellowOff} from '@/service/mcprotocol'
     import {routes} from '@/config/index2'
     import AlertBar from "@/components/AlertBar";
 
@@ -48,7 +48,22 @@
         },
         methods: {
             handleSelect(key) {
-                this.$router.push(key).catch(error => {
+                this.$router.push(key).then(() => {
+                    if (key === '/manual') {
+                        manualOn()
+                    }
+
+                    console.log(key)
+
+                    if (key === '/auto') {
+                        manualOff()
+                    }
+
+                    if (key !== '/auto') {
+                        yellowOn()
+                    }
+
+                }).catch(error => {
                     if (error.name !== "NavigationDuplicated") {
                         throw error
                     }
@@ -63,7 +78,7 @@
             setTimeout(() => {
                 const path = this.$route.path
                 this.activeIndex = (path === '/') ? '/auto' : path
-            }, 200)
+            }, 500)
         }
     }
 </script>
@@ -82,8 +97,8 @@
     .header {
         display: flex;
         justify-content: space-between;
-        height: 100px;
-        padding: 0 30px;
+        height: 80px;
+        padding: 0 20px;
         background-color: #ffffff;
         border-bottom: 1px solid @border-color;
 
@@ -93,8 +108,9 @@
         }
 
         .el-menu-item {
-            font-size: 30px !important;
-            height: 80px !important;
+            font-size: 20px !important;
+            height: 70px !important;
+            padding: 0 15px;
 
             @media screen and (max-width: 800px) {
                 font-size: 12px !important;
@@ -105,8 +121,8 @@
     }
 
     .content {
-        padding: 20px 20px 0;
-        height: calc(100% - 241px);
+        padding: 15px 15px 0;
+        height: calc(100% - 201px);
 
         @media screen and (max-width: 800px) {
             padding: 10px;
@@ -129,8 +145,8 @@
         background: #ffffff;
         border: 1px solid #d2d2d2;
         width: calc(100% - 40px);
-        height: calc(100% - 116px);
-        padding: 20px;
+        height: calc(100% - 74px);
+        padding: 15px;
     }
 
     .content-card-no-padding {
@@ -145,7 +161,7 @@
     }
 
     .el-alert__title {
-        font-size: 30px !important;
+        font-size: 20px !important;
         text-align: center;
     }
 
@@ -182,9 +198,9 @@
     }
 
     .big-big-button {
-        width: 180px !important;
-        height: 60px !important;
-        font-size: 20px !important;
+        width: 100px !important;
+        height: 40px !important;
+        font-size: 15px !important;
 
         @media screen and (max-width: 800px) {
             width: 72px !important;
@@ -194,8 +210,8 @@
     }
 
     .time-view {
-        font-size: 25px;
-        margin-right: 30px;
+        font-size: 15px;
+        margin-right: 20px;
 
         @media screen and (max-width: 800px) {
             font-size: 15px;
@@ -212,7 +228,7 @@
     }
 
     .product-title {
-        font-size: 30px;
+        font-size: 20px;
         display: flex;
         align-items: flex-end;
         margin-bottom: 30px;
@@ -223,4 +239,13 @@
         }
     }
 
+    .el-dialog__title {
+        font-size: 20px !important;
+    }
+
+    .el-checkbox-button__inner {
+        width: 93px;
+        height: 46px;
+        font-size: 15px !important;
+    }
 </style>

@@ -1,15 +1,23 @@
 import low from 'lowdb'
 import LocalStorage from 'lowdb/adapters/LocalStorage'
-import { range } from 'lodash'
+import {range} from 'lodash'
 
 const adapter = new LocalStorage('db')
 const db = low(adapter)
 
-const LHD = ['LHD HEV - 84260CZ000', 'LHD PHEV - 84260CZ200', 'LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7200']
-    .map(name => ({ productName: name, type: 'LHD', lamps: range(22).map(n => ({ number: n + 1, left: 0, top: 0 })) }))
+const LHD = ['LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7200', 'LHD HEV - 84260CZ000', 'LHD PHEV - 84260CZ200']
+    .map(name => ({
+        productName: name,
+        type: 'LHD',
+        lamps: range(22).map(n => ({number: n + 1, left: 0, top: 0, visible: true}))
+    }))
 
 const RHD = ['RHD HEV - 84260CZ920', 'RHD PHEV - 84260CZ950', 'RHD SHORT BODY - 84260N7900', 'RHD SHORT BODY - 84260N7910']
-    .map(name => ({ productName: name, type: 'RHD', lamps: range(20).map(n => ({ number: n + 1, left: 0, top: 0 })) }))
+    .map(name => ({
+        productName: name,
+        type: 'RHD',
+        lamps: range(20).map(n => ({number: n + 1, left: 0, top: 0, visible: true}))
+    }))
 
 const productList = LHD.concat(RHD)
 
@@ -74,7 +82,10 @@ const message = {
 }
 
 const config = {
-    alertStopTime: 0,
+    alertStopTime: 3,
+    cylinderWaitingTime: 3,
+    switchWaitingTime: 3,
+    UsingSwitch: ['switch1', 'switch2'],
     lang: 'ko',
     password: '123'
 }
@@ -85,7 +96,16 @@ db.defaults({
     config
 }).write()
 
-/*db.set('productList', productList).write()*/
+const pl = db.get('productList').value()
+pl[0].productName = 'LHD SHORT BODY - 84260N7000'
+pl[1].productName = 'LHD SHORT BODY - 84260N7200'
+pl[2].productName = 'LHD HEV - 84260CZ000'
+pl[3].productName = 'LHD PHEV - 84260CZ200'
+
+db.set('productList', pl).write()
+
+if (db.get('productList').value()[0].lamps.length < 22) db.set('productList', productList).write()
+if (db.get('productList').value()[4].lamps.length > 20) db.set('productList', productList).write()
 
 export default {
     getDB(name) {

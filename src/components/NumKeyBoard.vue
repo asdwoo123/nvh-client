@@ -1,11 +1,15 @@
 <template>
-    <div>
-        <el-popover placement="bottom" width="240" trigger="click">
+    <div @click="visible=true">
+        <el-popover placement="bottom" width="240" v-model="visible">
             <div class="flex wrap">
-                <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '←', 0, '']"
+                <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '←', 0]"
                      @click="numClick(n, field, type)"
                      class="flex center key-box">
                     {{n}}
+                </div>
+                <div @click="visible=false"
+                     class="flex center key-box">
+                    Enter
                 </div>
             </div>
             <el-button slot="reference" style="margin-right: 10px; font-size: 20px; overflow-x: hidden;"
@@ -20,6 +24,9 @@
     export default {
         name: "NumKeyBoard",
         props: ['num', 'numClick', 'type', 'field', 'width', 'height'],
+        data: () => ({
+           visible: false
+        }),
         computed: {
             numBlind() {
                 return this.num.split('').map(() => '●').join('')

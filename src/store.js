@@ -7,6 +7,8 @@ import {plcConfig} from '@/config/index2'
 
 const [inputPort, outputPort] = [plcConfig().inputPort, plcConfig().outputPort]
     .map((port, i) => {
+        if (i === 1) port[1] = port[1] - 1
+
         return range(port[1]).map((index) => {
             const frontStr = (i === 0) ? port[0].substr(0, 2) : 'Y0'
             const middleStr = (i === 0) ? parseInt(port[0].substr(3, 1)) + Math.floor(index / 16) : 5 + Math.floor(index / 16)
@@ -18,9 +20,9 @@ const [inputPort, outputPort] = [plcConfig().inputPort, plcConfig().outputPort]
         });
     })
 
-const [lhdSwitch, rhdSwitch] = [plcConfig().lhdSwitch, plcConfig().rhdSwitch]
+const [lhdSwitch, rhdSwitch] = [22, 20]
     .map(port => {
-        return range(port[1]).map(() => false)
+        return range(port).map(() => false)
     })
 
 const productList = utils.getDB('productList')
@@ -40,7 +42,13 @@ export default new Vuex.Store({
         rhdRight: false,
         mainAir: false,
         stop: false,
-        alert: 0
+        cylinderError: false,
+        airAlarm: false,
+        alert: 0,
+        productDetection: false,
+        cycleTime: 0,
+        total: 0,
+        workComplete: false
     },
     mutations: {
         setProduct(state, productName) {

@@ -18,7 +18,7 @@
 </template>
 
 <script>
-    const PerPage = 32
+    const PerPage = 16
 
     export default {
         name: "IOView",
@@ -54,9 +54,9 @@
 
 <style lang="less" scoped>
     .io-content {
-        margin: 16px;
+        margin: 5px;
         button {
-            margin-right: 13px;
+            margin-right: 12px;
         }
     }
 </style>

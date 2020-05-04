@@ -16,13 +16,42 @@
         </div>
 
         <div class="content-card-no-padding">
-            <div class="flex between center-v" style="padding: 20px;">
-                <span style="font-size: 25px;">{{ $t('alertStopTime') }}</span>
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">{{ $t('alertStopTime') }}</span>
+                <div class="flex" style="align-items: flex-end;">
                 <NumKeyBoard :num="field.alertStopTime" field="alertStopTime" :numClick="handleNumClick"/>
+                sec
+                </div>
             </div>
 
-            <div class="flex between center-v" style="padding: 20px;">
-                <span style="font-size: 25px;">{{ $t('selectLanguage') }}</span>
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">{{ $t('cylinderWaitingTime') }}</span>
+                <div class="flex" style="align-items: flex-end;">
+                <NumKeyBoard :num="field.cylinderWaitingTime" field="cylinderWaitingTime" :numClick="handleNumClick"/>
+                    sec
+                </div>
+            </div>
+
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">{{ $t('switchWaitingTime') }}</span>
+                <div class="flex" style="align-items: flex-end;">
+                    <NumKeyBoard :num="field.switchWaitingTime" field="switchWaitingTime" :numClick="handleNumClick"/>
+                    sec
+                </div>
+            </div>
+
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">제품 감지 스위치 사용</span>
+                <div class="flex" style="align-items: flex-end;">
+                    <el-checkbox-group v-model="UsingSwitch">
+                        <el-checkbox-button label="switch1" key="switch1">switch1</el-checkbox-button>
+                        <el-checkbox-button label="switch2" key="switch2">switch2</el-checkbox-button>
+                    </el-checkbox-group>
+                </div>
+            </div>
+
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">{{ $t('selectLanguage') }}</span>
                 <div>
                     <el-button @click="importLang" class="big-button" type="info" plain>
                         {{ $t('langImport') }}
@@ -32,6 +61,7 @@
                     </el-button>
                     <el-select v-model="field.lang"
                                style="margin-left: 20px;"
+                               @change="changeLang"
                     >
                         <el-option
                                 v-for="option in options"
@@ -42,13 +72,13 @@
                     </el-select>
                 </div>
             </div>
-            <div class="flex between center-v" style="padding: 20px;">
-                <span style="font-size: 25px;">{{ $t('changePassword') }}</span>
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">{{ $t('changePassword') }}</span>
                 <el-button @click="visible2=true" class="big-button" type="info" plain>변경</el-button>
             </div>
         </div>
         <!-- 여기서 부터 Dialog -->
-        <el-dialog :title="$t('enterPassword')" :visible.sync="visible">
+        <el-dialog :title="$t('enterPassword')" :visible.sync="visible" width="600px">
             <div class="flex column center" style="height: 300px;">
                 <div class="flex" style="position: relative;">
                     <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
@@ -136,12 +166,15 @@
             visible3: false,
             ipAddress: ip.address(),
             macAddress: '',
+            UsingSwitch: utils.getDB('config').UsingSwitch || ['switch1', 'switch2'],
             field: {
-                alertStopTime: '0',
+                alertStopTime: utils.getDB('config').alertStopTime + '' || '1',
+                cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime + '' || '1',
+                switchWaitingTime: utils.getDB('config').switchWaitingTime + '' || '1',
                 lang: '',
                 password: '',
                 currentPwd: '',
-                changePwd: ''
+                changePwd: '',
             }
         }),
         methods: {
@@ -149,6 +182,9 @@
                 if (this.field.password === utils.getDB('config').password) {
                     utils.setDB('config', {
                         alertStopTime: this.field.alertStopTime,
+                        cylinderWaitingTime: this.field.cylinderWaitingTime,
+                        switchWaitingTime: this.field.switchWaitingTime,
+                        UsingSwitch: this.UsingSwitch,
                         lang: this.field.lang,
                         password: utils.getDB('config').password
                     })
@@ -178,18 +214,21 @@
                 }
             },
             handleNumClick(n, field, type) {
+                this.field[field] = this.field[field].toString()
                 if (n === '←') {
                     this.field[field] = this.field[field].substr(0, this.field[field].length - 1)
                     if (this.field[field] === '' && type !== 'password') this.field[field] = '0'
-                } else if (n !== '' && this.field[field].length < 10) {
+                } else if (n !== 'Enter' && n !== '' && this.field[field].length < 10) {
                     this.field[field] = (this.field[field] === '0') ? n + '' : this.field[field] + n
                 }
             },
             reset() {
-                const {alertStopTime, lang} = utils.getDB('config')
+                const {alertStopTime, cylinderWaitingTime, lang, switchWaitingTIme} = utils.getDB('config')
 
                 this.field = {
                     alertStopTime,
+                    cylinderWaitingTime,
+                    switchWaitingTIme,
                     lang,
                     password: '',
                     currentPwd: '',
@@ -209,6 +248,16 @@
                 this.field.currentPwd = ''
                 this.field.changePwd = ''
                 this.visible2 = false
+            },
+            changeLang(value) {
+                utils.setDB('config', {
+                    alertStopTime: utils.getDB('config').alertStopTime,
+                    cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime,
+                    lang: value,
+                    password: utils.getDB('config').password
+                })
+
+                i18n.locale = this.field.lang
             }
         }
     }

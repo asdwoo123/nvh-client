@@ -53,8 +53,6 @@
                         manualOn()
                     }
 
-                    console.log(key)
-
                     if (key === '/auto') {
                         manualOff()
                     }
@@ -174,20 +172,20 @@
     }
 
     .el-select-dropdown__item {
-        height: 60px !important;
-        line-height: 60px !important;
-        font-size: 20px !important;
+        height: 46px !important;
+        line-height: 46px !important;
+        font-size: 15px !important;
     }
 
     .el-input__inner {
-        height: 60px !important;
-        font-size: 20px !important;
+        height: 46px !important;
+        font-size: 15px !important;
     }
 
     .big-button {
         width: 120px !important;
-        height: 60px !important;
-        font-size: 20px !important;
+        height: 46px !important;
+        font-size: 15px !important;
         text-align: center !important;
 
         @media screen and (max-width: 800px) {
@@ -244,7 +242,7 @@
     }
 
     .el-checkbox-button__inner {
-        width: 93px;
+        width: 113px;
         height: 46px;
         font-size: 15px !important;
     }

@@ -5,7 +5,8 @@
         </div>
         <div class="flex column wrap"
              style="flex: 1; border: 1px solid #d2d2d2; background-color: #fff;">
-            <div v-bind:key="n" v-for="(n, i) in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]" class="flex between center-v" style="padding: 9px;">
+            <div v-bind:key="n" v-for="(n, i) in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]"
+                 class="flex between center-v" style="padding: 9px; height: calc(100% / 9 - 18px);">
                 <span style="font-size: 15px;">{{ $t('cylinder') + ' ' + n }}</span>
                 <div>
                     <el-button @click="controlCylinderOff(i)" :type="(cylinderSensor[i * 2].portValue) ? 'success' : 'info'" class="btn">HP</el-button>
@@ -44,7 +45,7 @@
 <style scoped>
     .btn {
         width: 70px !important;
-        height: 37px !important;
+        height: 40px !important;
         font-size: 15px !important;
         text-align: center !important;
         line-height: 5px !important;

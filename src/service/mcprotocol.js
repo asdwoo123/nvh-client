@@ -75,19 +75,7 @@ function connected(err) {
         conn.writeItems('alertStopTime', db.getDB('config').alertStopTime * 10, valuesWritten)
     }*/
 
-    conn.writeItems('alertStopTime', db.getDB('config').alertStopTime * 10, () => {
-        conn.writeItems('cylinderWaitingTime', db.getDB('config').cylinderWaitingTime * 10, () => {
-            conn.writeItems('switchWaitingTime', db.getDB('config').switchWaitingTime * 10, () => {
-                const switchs = db.getDB('config').UsingSwitch
-                const s1 = switchs.find(s => s === 'switch1')
-                const s2 = switchs.find(s => s === 'switch2')
-
-                conn.writeItems('UsingSwitch', [!s1, !s2])
-                }
-            )
-        })
-    })
-
+    writeSetting()
 }
 
 
@@ -119,17 +107,6 @@ function valuesReady(anythingBad, values) {
             }
         }
     })
-
-
-
-    /*if (store.state.airAlarm) {
-        redOn()
-    } else if (values.allHp || !store.state.product) {
-        yellowOn()
-    } else if (!values.cylinderError) {
-        greenOn()
-    }*/
-
 
 }
 
@@ -187,26 +164,17 @@ export function yellowOff() {
     conn.writeItems('yellow', false, valuesWritten);
 }
 
-/*export function redOn() {
-    conn.writeItems('alarm', [true, false, false, true], valuesWritten);
-    if (!error) {
-        setTimeout(() => {
-            if (error) {
-                conn.writeItems('alarm', [true, false, false, false], valuesWritten)
-            }
+export function writeSetting() {
+    conn.writeItems('alertStopTime', db.getDB('config').alertStopTime * 10, () => {
+        conn.writeItems('cylinderWaitingTime', db.getDB('config').cylinderWaitingTime * 10, () => {
+            conn.writeItems('switchWaitingTime', db.getDB('config').switchWaitingTime * 10, () => {
+                    const switchs = db.getDB('config').UsingSwitch
+                    const s1 = switchs.find(s => s === 'switch1')
+                    const s2 = switchs.find(s => s === 'switch2')
 
-        }
-            , db.getDB('config').alertStopTime * 1000)
-    }
-    error = true
+                    conn.writeItems('UsingSwitch', [!s1, !s2])
+                }
+            )
+        })
+    })
 }
-
-export function yellowOn() {
-    conn.writeItems('alarm', [false, true, false, false], valuesWritten);
-    error = false
-}
-
-export function greenOn() {
-    conn.writeItems('alarm', [false, false, true, false], valuesWritten);
-    error = false
-}*/

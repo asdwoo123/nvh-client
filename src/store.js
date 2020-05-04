@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {range} from 'lodash'
+import {range, cloneDeep} from 'lodash'
 import utils from '@/utils'
 import {plcConfig} from '@/config/index2'
 
@@ -25,7 +25,7 @@ const [lhdSwitch, rhdSwitch] = [22, 20]
         return range(port).map(() => false)
     })
 
-const productList = utils.getDB('productList')
+const productList = cloneDeep(utils.getDB('productList'))
 Vue.use(Vuex)
 
 export default new Vuex.Store({

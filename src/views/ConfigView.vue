@@ -16,27 +16,12 @@
         </div>
 
         <div class="content-card-no-padding">
-            <div class="flex between center-v" style="padding: 15px;">
-                <span style="font-size: 20px;">{{ $t('alertStopTime') }}</span>
+            <div class="flex between center-v" style="padding: 15px;" v-bind:key="index"
+                 v-for="(key, index) in ['alertStopTime', 'cylinderWaitingTime', 'switchWaitingTime']">
+                <span style="font-size: 20px;">{{ $t(`${key}`) }}</span>
                 <div class="flex" style="align-items: flex-end;">
-                <NumKeyBoard :num="field.alertStopTime" field="alertStopTime" :numClick="handleNumClick"/>
-                sec
-                </div>
-            </div>
-
-            <div class="flex between center-v" style="padding: 15px;">
-                <span style="font-size: 20px;">{{ $t('cylinderWaitingTime') }}</span>
-                <div class="flex" style="align-items: flex-end;">
-                <NumKeyBoard :num="field.cylinderWaitingTime" field="cylinderWaitingTime" :numClick="handleNumClick"/>
-                    sec
-                </div>
-            </div>
-
-            <div class="flex between center-v" style="padding: 15px;">
-                <span style="font-size: 20px;">{{ $t('switchWaitingTime') }}</span>
-                <div class="flex" style="align-items: flex-end;">
-                    <NumKeyBoard :num="field.switchWaitingTime" field="switchWaitingTime" :numClick="handleNumClick"/>
-                    sec
+                    <NumKeyBoard :num="field[key]" :field="key" :numClick="handleNumClick"/>
+                    {{ $t('sec') }}
                 </div>
             </div>
 
@@ -44,8 +29,12 @@
                 <span style="font-size: 20px;">제품 감지 스위치 사용</span>
                 <div class="flex" style="align-items: flex-end;">
                     <el-checkbox-group v-model="UsingSwitch">
-                        <el-checkbox-button label="switch1" key="switch1">switch1</el-checkbox-button>
-                        <el-checkbox-button label="switch2" key="switch2">switch2</el-checkbox-button>
+                        <el-checkbox-button label="switch1" key="switch1">
+                            {{ isOnOff[0] }}
+                        </el-checkbox-button>
+                        <el-checkbox-button label="switch2" key="switch2">
+                            {{ isOnOff[1] }}
+                        </el-checkbox-button>
                     </el-checkbox-group>
                 </div>
             </div>
@@ -132,6 +121,7 @@
     import NumKeyBoard from "@/components/NumKeyBoard";
     import utils from '@/utils'
     import i18n from "@/plugins/i18n";
+    import {writeSetting} from "@/service/mcprotocol";
 
     const fs = require('fs')
     const macaddress = require('macaddress')
@@ -141,7 +131,6 @@
         name: "ConfigView",
         components: {NumKeyBoard},
         mounted() {
-            this.reset()
             macaddress.one((err, mac) => {
                 if (!err) this.macAddress = mac
             })
@@ -168,15 +157,20 @@
             macAddress: '',
             UsingSwitch: utils.getDB('config').UsingSwitch || ['switch1', 'switch2'],
             field: {
-                alertStopTime: utils.getDB('config').alertStopTime + '' || '1',
-                cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime + '' || '1',
-                switchWaitingTime: utils.getDB('config').switchWaitingTime + '' || '1',
+                alertStopTime: utils.getDB('config').alertStopTime || '1',
+                cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime || '1',
+                switchWaitingTime: utils.getDB('config').switchWaitingTime || '1',
                 lang: '',
                 password: '',
                 currentPwd: '',
                 changePwd: '',
             }
         }),
+        computed: {
+            isOnOff() {
+                return ['switch1', 'switch2'].map(sw => (this.UsingSwitch.indexOf(sw) !== -1) ? sw + ' on' : sw + ' off')
+            }
+        },
         methods: {
             saveConfig() {
                 if (this.field.password === utils.getDB('config').password) {
@@ -190,10 +184,8 @@
                     })
                     i18n.locale = this.field.lang
                     this.reset()
-                    /*this.$message({
-                    message: '저장되었습니다',
-                    type: 'success'
-                })*/
+
+                    writeSetting()
                 }
             },
             async importLang() {
@@ -204,16 +196,13 @@
                 }
             },
             async exportLang() {
-                try {
-                    const messages = utils.getDB('message')
-                    const path = await utils.showSaveDialog()
-                    const buffer = utils.encodeXLSX(messages)
-                    fs.writeFile(path, buffer)
-                } catch (e) {
-                    console.error(e)
-                }
+                const messages = utils.getDB('message')
+                const path = await utils.showSaveDialog()
+                const buffer = utils.encodeXLSX(messages)
+                fs.writeFile(path, buffer)
             },
             handleNumClick(n, field, type) {
+
                 this.field[field] = this.field[field].toString()
                 if (n === '←') {
                     this.field[field] = this.field[field].substr(0, this.field[field].length - 1)
@@ -223,12 +212,12 @@
                 }
             },
             reset() {
-                const {alertStopTime, cylinderWaitingTime, lang, switchWaitingTIme} = utils.getDB('config')
+                const {alertStopTime, cylinderWaitingTime, lang, switchWaitingTime} = utils.getDB('config')
 
                 this.field = {
                     alertStopTime,
                     cylinderWaitingTime,
-                    switchWaitingTIme,
+                    switchWaitingTime,
                     lang,
                     password: '',
                     currentPwd: '',
@@ -250,11 +239,13 @@
                 this.visible2 = false
             },
             changeLang(value) {
+                const { alertStopTime, cylinderWaitingTime, switchWaitingTime, password } = utils.getDB('config')
                 utils.setDB('config', {
-                    alertStopTime: utils.getDB('config').alertStopTime,
-                    cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime,
+                    alertStopTime,
+                    cylinderWaitingTime,
+                    switchWaitingTime,
                     lang: value,
-                    password: utils.getDB('config').password
+                    password
                 })
 
                 i18n.locale = this.field.lang

@@ -10,7 +10,7 @@
                         {{ $t('cycleTime') }}
                     </div>
                     <div>
-                        <span style="font-weight: bold; font-size: 20px;">{{ cycleTime }}</span> {{ $t('sec') }}
+                        <span style="font-weight: bold; font-size: 20px;">{{(cycleTime / 20).toFixed(1) }}</span> {{ $t('sec') }}
                     </div>
                 </div>
 
@@ -20,7 +20,7 @@
                             {{ $t('total') }}
                         </div>
                         <div>
-                            <span style="font-weight: bold; font-size: 20px;">{{ total }}</span> {{ $t('sec') }}
+                            <span style="font-weight: bold; font-size: 20px;">{{ total }}</span> {{ $t('count') }}
                         </div>
                     </div>
                     <el-button @click="totalReset" style="border-radius: 0;" type="info" plain>Reset</el-button>
@@ -129,6 +129,7 @@
     import utils from '@/utils'
     import NumKeyBoard from "@/components/NumKeyBoard";
     import {changeMode, mainAirOn, mainAirOff, reset, complete} from '@/service/mcprotocol'
+    import {cloneDeep} from 'lodash'
 
     export default {
         name: "AutoView",
@@ -137,7 +138,7 @@
                 draggable: false
             },
             lampDisable: false,
-            productList: utils.getDB('productList'),
+            productList: cloneDeep(utils.getDB('productList')),
             visible: false,
             visible2: false,
             visible3: false,
@@ -169,7 +170,7 @@
             },
             lamps() {
                 if (!this.product) return
-                return this.productList.find(x => x.productName === this.product.productName).lamps
+                return this.product.lamps
             },
             lampCheck() {
                 if (this.product) {
@@ -197,12 +198,14 @@
 
                     this.productList = this.productList.map(product => {
                         if (product.productName === productName) {
-                            product.lamps = this.product.lamps
+                            product.lamps = [...this.product.lamps]
                         }
                         return product
                     })
 
                     utils.setDB('productList', this.productList)
+
+                    this.lampReset()
 
                     this.moveable.draggable = false
                     this.lampDisable = false
@@ -211,11 +214,11 @@
                 this.field.password = ''
             },
             positionCancel() {
-                this.product.lamps = utils.getDB('productList').find(x => x.productName === this.product.productName).lamps
+                this.lampReset()
                 this.moveable.draggable = false
             },
             lampDisableCancle() {
-                this.product.lamps = utils.getDB('productList').find(x => x.productName === this.product.productName).lamps
+                this.lampReset()
                 this.lampDisable = false
             },
             showModeChange() {
@@ -281,6 +284,9 @@
             },
             totalReset() {
                 reset()
+            },
+            lampReset() {
+                this.product.lamps = cloneDeep(this.productList.find(v => v.productName === this.product.productName).lamps)
             }
         }
     }

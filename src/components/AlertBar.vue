@@ -6,6 +6,8 @@
 </template>
 
 <script>
+    import utils from '@/utils'
+
     export default {
         name: "AlertBar",
         data: () => ({
@@ -13,7 +15,9 @@
         }),
         computed: {
             alert() {
-                const { connect, mainAir, product, stop, lhdLeft, lhdRight, rhdLeft, rhdRight, airAlarm, productDetection } = this.$store.state
+                const { connect, mainAir, product, stop, lhdLeft, lhdRight, rhdLeft, rhdRight, airAlarm, detectionSwitch, workComplete } = this.$store.state
+                const switchEnable = utils.getDB('config').UsingSwitch.length === 0
+
                 this.level = 'error'
                 if (!connect) return 'noPLC'
                 else if (!mainAir) return 'noAir'
@@ -31,9 +35,14 @@
                     }
 
                     this.level = 'success'
+                    if (workComplete) {
+                        if (switchEnable) return 'startWorkComplete'
+                        else return 'workComplete'
+                    }
+                    if (!workComplete && detectionSwitch.every(v => v)) return 'working'
 
-                    if (!productDetection) return 'noProductDetection'
-                    else if (this.$store.state.workComplete) return 'workComplete'
+                    if (switchEnable) return 'startNoProductDetection'
+                    else return 'noProductDetection'
                 }
 
                 return ''
@@ -44,7 +53,7 @@
 
 <style scoped lang="less">
     .alert-bar {
-        height: 70px;
+        height: 75px;
         width: 100%;
 
         @media screen and (max-width: 800px) {

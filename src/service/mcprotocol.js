@@ -12,7 +12,7 @@ const {host, port} = plcConfig()
 const variables = {};
 
 const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRight', 'rhdLeft',
-    'rhdRight', 'mainAir', 'cylinderError', 'cycleTime', 'total']
+    'rhdRight', 'mainAir', 'cylinderError', 'cycleTime', 'total', 'switchOneOn']
 
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
@@ -25,11 +25,6 @@ range(17).forEach(n => {
     variables['cylinder' + (n + 1)] = 'M' + (134 + n) + ',1'
 })
 
-/*const modes = range(8).map(n => 'mode' + (n + 1))
-range(8).forEach(n => {
-    variables['mode' + (n + 1)] = 'M' + (336 + n) + ',1'
-}) */
-
 
 variables.mode = 'M336,8'
 
@@ -39,7 +34,7 @@ variables.manual = 'M2,1'
 
 variables.allHp = 'M359,1'
 
-variables.productDetection = 'M207,1'
+variables.productDetection = 'M209,1'
 
 variables.alertStopTime = 'D1000,1'
 
@@ -54,6 +49,12 @@ variables.complete = 'M310,1'
 variables.reset = 'M370,1'
 
 variables.yellow = 'M3,1'
+
+variables.release = 'M200,1'
+
+variables.selectMode = 'M290,1'
+
+variables.start = 'M500,1'
 
 conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)
 
@@ -71,10 +72,6 @@ function connected(err) {
         conn.readAllItems(valuesReady)
     }, 100)
 
-    /*if (db.getDB('config').alertStopTime) {
-        conn.writeItems('alertStopTime', db.getDB('config').alertStopTime * 10, valuesWritten)
-    }*/
-
     writeSetting()
 }
 
@@ -89,8 +86,10 @@ function valuesReady(anythingBad, values) {
     portList.forEach((port) => {
         if (port === 'switchAndStop') {
             store.state.lhdSwitch = values.switchAndStop.slice(0, 22)
+            store.state.lhdSwitch.splice(12, 1)
             store.state.stop = values.switchAndStop.slice(33, 34)[0]
             store.state.airAlarm = values.switchAndStop.slice(36, 37)[0]
+            store.state.detectionSwitch = values.switchAndStop.slice(39, 41)
             store.state.rhdSwitch = values.switchAndStop.slice(42)
 
         } else {
@@ -123,12 +122,6 @@ export function cylinderOff(index) {
 }
 
 export function changeMode(index) {
-    /*conn.writeItems(modes[index], true, valuesWritten);
-    modes.forEach((mode, i) => {
-        if (i !== index) {
-           conn.writeItems(modes[index], false, valuesWritten);
-        }
-        })*/
     conn.writeItems('mode', range(8).map(n => (n === index)), valuesWritten);
 }
 
@@ -149,11 +142,20 @@ export function manualOff() {
 }
 
 export function complete() {
+    console.log('complete')
     conn.writeItems('complete', true, valuesWritten);
 }
 
+export function deComplete() {
+    console.log('deComplete')
+    conn.writeItems('complete', false, valuesWritten);
+}
+
 export function reset() {
-    conn.writeItems('reset', true, valuesWritten);
+    console.log('reset')
+    conn.writeItems('reset', true, () => {
+        setTimeout(() => conn.writeItems('reset', false), 500)
+    });
 }
 
 export function yellowOn() {
@@ -164,15 +166,39 @@ export function yellowOff() {
     conn.writeItems('yellow', false, valuesWritten);
 }
 
+export function stopRelease() {
+    conn.writeItems('release', true, () => setTimeout(() => conn.writeItems('release', false), 500));
+}
+
+export function selectModeOn() {
+    conn.writeItems('selectMode', true, valuesWritten);
+}
+
+export function selectModeOff() {
+    conn.writeItems('selectMode', false, valuesWritten);
+}
+
+export function start() {
+    console.log('start')
+    store.state.workComplete = false
+    conn.writeItems('complete', false, () => {
+        conn.writeItems('start', true, () => {
+            setTimeout(() => {
+                conn.writeItems('start', false)
+            }, 500)
+        });
+    });
+}
+
 export function writeSetting() {
     conn.writeItems('alertStopTime', db.getDB('config').alertStopTime * 10, () => {
         conn.writeItems('cylinderWaitingTime', db.getDB('config').cylinderWaitingTime * 10, () => {
-            conn.writeItems('switchWaitingTime', db.getDB('config').switchWaitingTime * 10, () => {
+            conn.writeItems('switchWaitingTime', db.getDB('config').switchWaitingTime, () => {
                     const switchs = db.getDB('config').UsingSwitch
                     const s1 = switchs.find(s => s === 'switch1')
                     const s2 = switchs.find(s => s === 'switch2')
 
-                    conn.writeItems('UsingSwitch', [!s1, !s2])
+                    conn.writeItems('UsingSwitch', [!s1, !s2], () =>  deComplete())
                 }
             )
         })

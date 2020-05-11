@@ -14,7 +14,7 @@
             </div>
             <el-button slot="reference" style="margin-right: 10px; font-size: 20px; overflow-x: hidden;"
             :style="{width: (width) ? width + 'px' : '150px', height: (height) ? height + 'px' : '46px'}">
-                {{ (type === 'password') ? numBlind : num }}
+                {{ (type === 'password') ? numBlind : numNonBlind }}
             </el-button>
         </el-popover>
     </div>
@@ -30,6 +30,9 @@
         computed: {
             numBlind() {
                 return this.num.split('').map(() => '●').join('')
+            },
+            numNonBlind() {
+                return (this.field === 'switchWaitingTime') ? (parseInt(this.num) / 10).toString() : this.num
             }
         }
     }

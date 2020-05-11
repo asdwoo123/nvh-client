@@ -2,7 +2,7 @@
     <div style="height: 100%;">
         <div class="flex between" style="margin-bottom: 16px;">
             <el-button @click="visible3=true" class="big-big-button" type="info">
-                정보
+                {{ $t('information') }}
             </el-button>
 
             <div>
@@ -26,7 +26,7 @@
             </div>
 
             <div class="flex between center-v" style="padding: 15px;">
-                <span style="font-size: 20px;">제품 감지 스위치 사용</span>
+                <span style="font-size: 20px;">{{ $t('usingSwitch') }}</span>
                 <div class="flex" style="align-items: flex-end;">
                     <el-checkbox-group v-model="UsingSwitch">
                         <el-checkbox-button label="switch1" key="switch1">
@@ -83,13 +83,13 @@
 
         <el-dialog :title="$t('enterPassword')" :visible.sync="visible2" width="800px">
             <div class="flex column center" style="height: 350px;">
-                <div class="flex" style="position: relative; width: 720px; margin-bottom: 40px;">
-                    <div style="font-size: 25px; margin-right: 44px;">현재 비밀번호</div>
+                <div class="flex" style="position: relative; width: 720px; margin-bottom: 40px; align-items: center;">
+                    <div style="font-size: 20px; margin-right: 44px;">{{ $t('currentPassword') }}</div>
                     <NumKeyBoard :num="field.currentPwd" field="currentPwd" type="password" :numClick="handleNumClick"
                                  width="350" height="60"/>
                 </div>
-                <div class="flex" style="position: relative; width: 720px;">
-                    <div style="font-size: 25px; margin-right: 20px;">변경할 비밀번호</div>
+                <div class="flex" style="position: relative; width: 720px; align-items: center;">
+                    <div style="font-size: 20px; margin-right: 20px;">{{ $t('passwordToChange') }}</div>
                     <NumKeyBoard :num="field.changePwd" field="changePwd" type="password" :numClick="handleNumClick"
                                  width="350" height="60"/>
                     <el-button @click="changePassword"
@@ -126,6 +126,7 @@
     const fs = require('fs')
     const macaddress = require('macaddress')
     const ip = require('ip')
+    const {getCurrentWindow} = require('electron').remote;
 
     export default {
         name: "ConfigView",
@@ -160,7 +161,7 @@
                 alertStopTime: utils.getDB('config').alertStopTime || '1',
                 cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime || '1',
                 switchWaitingTime: utils.getDB('config').switchWaitingTime || '1',
-                lang: '',
+                lang: utils.getDB('config').lang || 'en',
                 password: '',
                 currentPwd: '',
                 changePwd: '',
@@ -193,6 +194,7 @@
                 if (path.length > 0) {
                     const message = utils.decodeXLSX(path[0])
                     utils.setDB('message', message)
+                    getCurrentWindow().reload()
                 }
             },
             async exportLang() {
@@ -239,11 +241,12 @@
                 this.visible2 = false
             },
             changeLang(value) {
-                const { alertStopTime, cylinderWaitingTime, switchWaitingTime, password } = utils.getDB('config')
+                const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password } = utils.getDB('config')
                 utils.setDB('config', {
                     alertStopTime,
                     cylinderWaitingTime,
                     switchWaitingTime,
+                    UsingSwitch,
                     lang: value,
                     password
                 })

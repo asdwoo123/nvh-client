@@ -13,22 +13,30 @@
                 {{product.productName}}
                 </span>
             </div>
-            <div class="flex center-v">
-                <div class="time-view">{{ currentTime }}</div>
+            <div class="flex column center" style="margin-bottom: 10px;">
                 <img class="logo" src="./assets/biglogo.jpg" alt="logo">
+                <div class="time-view">{{ currentTime }}</div>
             </div>
         </div>
         <div class="content">
             <router-view/>
         </div>
         <AlertBar />
+        <el-dialog :title="$t('emergencyStop')" :visible.sync="visible"
+                   width="700px" :close-on-click-modal="false" :show-close="false">
+            <div class="flex center" style="height: 300px;">
+                    <el-button type="info" style="width: 150px; height: 70px; font-size: 25px;" @click="safetyReset">
+                        {{ $t('reset') }}
+                    </el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
 <script>
     import router from "@/router"
     import moment from "moment"
-    import {manualOn, manualOff, yellowOn, yellowOff} from '@/service/mcprotocol'
+    import {manualOn, manualOff, yellowOn, stopRelease} from '@/service/mcprotocol'
     import {routes} from '@/config/index2'
     import AlertBar from "@/components/AlertBar";
 
@@ -44,6 +52,9 @@
         computed: {
             product() {
                 return this.$store.state.product
+            },
+            visible() {
+                return this.$store.state.stop
             }
         },
         methods: {
@@ -66,11 +77,18 @@
                         throw error
                     }
                 })
+            },
+            safetyReset() {
+                stopRelease()
+                this.visible = false
             }
         },
         mounted() {
             setInterval(() => {
                 this.currentTime = moment().format('L LT')
+                if (this.$store.state.stop) {
+                    this.visible = true
+                }
             }, 1000)
 
             setTimeout(() => {
@@ -90,13 +108,15 @@
         text-align: center;
         background: @background-color;
         height: 100%;
+        overflow-x: hidden;
+        overflow-y: hidden;
     }
 
     .header {
         display: flex;
         justify-content: space-between;
         height: 80px;
-        padding: 0 20px;
+        padding: 0 15px;
         background-color: #ffffff;
         border-bottom: 1px solid @border-color;
 
@@ -108,7 +128,7 @@
         .el-menu-item {
             font-size: 20px !important;
             height: 70px !important;
-            padding: 0 15px;
+            padding: 0 13px;
 
             @media screen and (max-width: 800px) {
                 font-size: 12px !important;
@@ -159,7 +179,7 @@
     }
 
     .el-alert__title {
-        font-size: 20px !important;
+        font-size: 25px !important;
         text-align: center;
     }
 
@@ -196,7 +216,7 @@
     }
 
     .big-big-button {
-        width: 100px !important;
+        width: 110px !important;
         height: 40px !important;
         font-size: 15px !important;
 
@@ -209,7 +229,7 @@
 
     .time-view {
         font-size: 15px;
-        margin-right: 20px;
+        margin-top: 10px;
 
         @media screen and (max-width: 800px) {
             font-size: 15px;
@@ -226,7 +246,7 @@
     }
 
     .product-title {
-        font-size: 20px;
+        font-size: 18px;
         display: flex;
         align-items: flex-end;
         margin-bottom: 30px;
@@ -247,3 +267,4 @@
         font-size: 15px !important;
     }
 </style>
+

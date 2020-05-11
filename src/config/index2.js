@@ -51,5 +51,6 @@ export const plcConfig = () => {
         cylinderError: ['M358', 1],
         cycleTime: ['D1010', 1],
         total: ['D100', 1],
+        switchOneOn: ['M1000', 1]
     }
 }

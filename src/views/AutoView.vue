@@ -28,7 +28,7 @@
             </div>
             <div style="position: absolute; top: 0; right: 0;">
                 <el-button :type="(air) ? 'success' : 'info'" @click="mainAirOnOff"
-                           style="width: 140px; height: 50px; font-size: 15px;">
+                           style="width: 170px; height: 50px; font-size: 14px;">
                     {{ $t('mainAir') }}
                 </el-button>
             </div>
@@ -52,12 +52,12 @@
                 <el-button v-if="!lampDisable"
                            class="move-btn"
                            @click="lampDisable = true" type="info">
-                    램프 on/off
+                    {{ $t('lamp') }} on/off
                 </el-button>
                 <template v-else>
                     <el-button class="move-btn" style="top: 70px;"
                                @click="visible2=true" type="info">
-                        설정 저장
+                        {{ $t('configSave') }}
                     </el-button>
                     <el-button class="move-btn" style="top: 140px;"
                                @click="lampDisableCancle" type="info">
@@ -65,6 +65,7 @@
                     </el-button>
                 </template>
             </div>
+
         </div>
         <div class="productView">
             <template v-if="lamps">
@@ -79,9 +80,22 @@
                     </el-button>
                     <div :id="'l' + index"/>
                 </Moveable>
+                <Moveable v-bind="moveable" @drag="handleDrag2" v-bind:key="index"
+                          style="z-index: 1; position: absolute;"
+                          v-for="(sw, index) in detectionSwitches"
+                          v-bind:style="{ top: sw.top + 'px', left: sw.left + 'px' }">
+                    <el-button style="width: 40px;
+            height: 40px; font-size: 15px; display: flex; justify-content: center;"
+                               :type="(switchCheck[index]) ? 'success' : 'danger'"
+                    >
+                        {{ index + 1 }}
+                    </el-button>
+                    <div :id="'l' + index"/>
+                </Moveable>
             </template>
             <img v-if="product" style="width: 100%;"
                  :src='"../assets/model/" + product.productName + ".png"' alt="product-img">
+
         </div>
         <el-dialog :visible.sync="visible" top="4vh">
             <el-button style="width: 100%; height: 50px; margin: 0 0 16px 0; font-size: 20px;" type="primary"
@@ -121,6 +135,10 @@
                 </div>
             </div>
         </el-dialog>
+
+        <el-button v-if="product && switchEnable" class="start-btn" @click="workStart" type="success">
+            {{ $t('start') }}
+        </el-button>
     </div>
 </template>
 
@@ -128,8 +146,9 @@
     import Moveable from 'vue-moveable';
     import utils from '@/utils'
     import NumKeyBoard from "@/components/NumKeyBoard";
-    import {changeMode, mainAirOn, mainAirOff, reset, complete} from '@/service/mcprotocol'
+    import {changeMode, mainAirOn, mainAirOff, reset, complete, deComplete, selectModeOn, selectModeOff, start} from '@/service/mcprotocol'
     import {cloneDeep} from 'lodash'
+
 
     export default {
         name: "AutoView",
@@ -142,27 +161,47 @@
             visible: false,
             visible2: false,
             visible3: false,
+            selectState: false,
             field: {
                 password: ''
-            }
+            },
+            switchEnable: utils.getDB('config').UsingSwitch.length === 0
         }),
         components: {
             NumKeyBoard,
             Moveable,
         },
         mounted() {
+            let visibleState = false
+
+            setInterval(() => {
+                if (!this.visible && this.selectState) {
+
+                    this.selectState = false
+                    selectModeOff()
+                }
+            }, 1000)
+
+
+
             setInterval(() => {
                 if (!this.product) return;
-                this.product.lamps.filter(x => x.disable).forEach(lams => {
+                const arr = []
+                this.product.lamps.filter(x => !x.disable).forEach(lams => {
                     const index = this.product.lamps.indexOf(lams)
-                    this.lampCheck.splice(index, 1)
+                    arr.push(this.lampCheck[index])
                 })
 
-                if (this.lampCheck.every(v => v)) {
+                if (!visibleState && arr.every(v => v) && this.$store.state.detectionSwitch.every(v => v)) {
+                    visibleState = true
                     this.$store.state.workComplete = true
                     complete()
+                } else if (visibleState && !this.$store.state.detectionSwitch.every(v => v)) {
+                    visibleState = false
+                    this.$store.state.workComplete = false
+                    deComplete()
                 }
-            }, 500)
+            }, 1500)
         },
         computed: {
             product() {
@@ -189,6 +228,13 @@
             },
             total() {
                 return this.$store.state.total
+            },
+            detectionSwitches() {
+                if (!this.product) return
+                return this.product.detectionSwitches
+            },
+            switchCheck() {
+                return this.$store.state.detectionSwitch
             }
         },
         methods: {
@@ -199,6 +245,7 @@
                     this.productList = this.productList.map(product => {
                         if (product.productName === productName) {
                             product.lamps = [...this.product.lamps]
+                            product.detectionSwitches = [...this.product.detectionSwitches]
                         }
                         return product
                     })
@@ -225,6 +272,9 @@
                 if (this.field.password === utils.getDB('config').password) {
                     this.visible3 = false
                     this.visible = true
+
+                    selectModeOn()
+                    this.selectState = true
                 }
                 this.field.password = ''
             },
@@ -235,6 +285,14 @@
                 const lamp = this.product.lamps[id]
                 lamp.left = left
                 lamp.top = top
+            },
+            handleDrag2({target, left, top}) {
+                let id = target.children[1].id
+                id = id.substr(1)
+                id = parseInt(id)
+                const sw = this.product.detectionSwitches[id]
+                sw.left = left
+                sw.top = top
             },
             setProduct(productName, index) {
                 this.$store.commit('setProduct', productName)
@@ -287,6 +345,10 @@
             },
             lampReset() {
                 this.product.lamps = cloneDeep(this.productList.find(v => v.productName === this.product.productName).lamps)
+                this.product.detectionSwitches = cloneDeep(this.productList.find(v => v.productName === this.product.productName).detectionSwitches)
+            },
+            workStart() {
+                start()
             }
         }
     }
@@ -306,9 +368,9 @@
 
 
     .move-btn {
-        width: 140px !important;
+        width: 170px !important;
         height: 50px !important;
-        font-size: 15px;
+        font-size: 14px;
         position: absolute;
         top: 0;
         right: 0;
@@ -330,7 +392,7 @@
 
     .select-btn {
         position: absolute;
-        font-size: 15px !important;
+        font-size: 14px !important;
         top: 0;
         left: 0;
         width: 140px !important;
@@ -351,5 +413,14 @@
         justify-content: space-between;
         align-items: center;
         padding: 10px;
+    }
+
+    .start-btn {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 170px !important;
+        height: 50px !important;
+        font-size: 20px;
     }
 </style>

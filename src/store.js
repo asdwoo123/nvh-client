@@ -48,7 +48,9 @@ export default new Vuex.Store({
         productDetection: false,
         cycleTime: 0,
         total: 0,
-        workComplete: false
+        workComplete: false,
+        switchOneOn: false,
+        detectionSwitch: [false, false]
     },
     mutations: {
         setProduct(state, productName) {

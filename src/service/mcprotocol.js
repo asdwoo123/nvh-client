@@ -191,9 +191,9 @@ export function start() {
 }
 
 export function writeSetting() {
-    conn.writeItems('alertStopTime', db.getDB('config').alertStopTime * 10, () => {
-        conn.writeItems('cylinderWaitingTime', db.getDB('config').cylinderWaitingTime * 10, () => {
-            conn.writeItems('switchWaitingTime', db.getDB('config').switchWaitingTime, () => {
+    conn.writeItems('alertStopTime', Math.floor(db.getDB('config').alertStopTime * 10), () => {
+        conn.writeItems('cylinderWaitingTime', Math.floor(db.getDB('config').cylinderWaitingTime * 10), () => {
+            conn.writeItems('switchWaitingTime', Math.floor(db.getDB('config').switchWaitingTime * 10), () => {
                     const switchs = db.getDB('config').UsingSwitch
                     const s1 = switchs.find(s => s === 'switch1')
                     const s2 = switchs.find(s => s === 'switch2')

@@ -1,7 +1,7 @@
 <template>
     <div @click="visible=true">
         <el-popover placement="bottom" width="240" v-model="visible">
-            <div class="flex wrap">
+            <div class="flex wrap" v-if="type === 'password'">
                 <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '←', 0]"
                      @click="numClick(n, field, type)"
                      class="flex center key-box">
@@ -12,8 +12,35 @@
                     Enter
                 </div>
             </div>
+            <div class="flex" v-else>
+                <div class="flex wrap" style="width: 180px;">
+                    <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0]"
+                         @click="numClick(n, field, type)"
+                         class="flex center key-box2">
+                        {{n}}
+                    </div>
+                    <div class="flex center key-box2"
+                         @click="numClick('.', field, type)">
+                        .
+                    </div>
+                </div>
+                <div class="flex column">
+                    <div @click="numClick('←', field, type)"
+                         class="flex center key-box2">
+                        ←
+                    </div>
+                    <div @click="numClick('Clear', field, type)"
+                         class="flex center key-box2">
+                        Clear
+                    </div>
+                <div @click="visible=false"
+                     class="flex center key-box2" style="height: 110px;">
+                    Enter
+                </div>
+                </div>
+            </div>
             <el-button slot="reference" style="margin-right: 10px; font-size: 20px; overflow-x: hidden;"
-            :style="{width: (width) ? width + 'px' : '150px', height: (height) ? height + 'px' : '46px'}">
+                       :style="{width: (width) ? width + 'px' : '150px', height: (height) ? height + 'px' : '46px'}">
                 {{ (type === 'password') ? numBlind : numNonBlind }}
             </el-button>
         </el-popover>
@@ -25,20 +52,20 @@
         name: "NumKeyBoard",
         props: ['num', 'numClick', 'type', 'field', 'width', 'height'],
         data: () => ({
-           visible: false
+            visible: false
         }),
         computed: {
             numBlind() {
                 return this.num.split('').map(() => '●').join('')
             },
             numNonBlind() {
-                return (this.field === 'switchWaitingTime') ? (parseInt(this.num) / 10).toString() : this.num
+                return this.num
             }
         }
     }
 </script>
 
-<style scoped>
+<style scoped lang="less">
     .key-box {
         width: 70px;
         height: 70px;
@@ -48,5 +75,11 @@
         margin: 5px;
         box-sizing: border-box;
         cursor: pointer;
+    }
+
+    .key-box2 {
+        .key-box;
+        width: 50px;
+        height: 50px;
     }
 </style>

@@ -109,24 +109,20 @@ function valuesReady(anythingBad, values) {
 
 }
 
-function valuesWritten(anythingBad) {
-    if (anythingBad) console.log(anythingBad)
-}
-
 export function cylinderOn(index) {
-    conn.writeItems(cylinders[index], true, valuesWritten);
+    conn.writeItems(cylinders[index], true);
 }
 
 export function cylinderOff(index) {
-    conn.writeItems(cylinders[index], false, valuesWritten);
+    conn.writeItems(cylinders[index], false);
 }
 
 export function changeMode(index) {
-    conn.writeItems('mode', range(8).map(n => (n === index)), valuesWritten);
+    conn.writeItems('mode', range(8).map(n => (n === index)));
 }
 
 export function mainAirOn() {
-    conn.writeItems('mainAir', true, valuesWritten);
+    conn.writeItems('mainAir', true);
 }
 
 export function mainAirOff() {
@@ -134,7 +130,7 @@ export function mainAirOff() {
 }
 
 export function manualOn() {
-    conn.writeItems('manual', true, valuesWritten);
+    conn.writeItems('manual', true);
 }
 
 export function manualOff() {
@@ -143,12 +139,12 @@ export function manualOff() {
 
 export function complete() {
     console.log('complete')
-    conn.writeItems('complete', true, valuesWritten);
+    conn.writeItems('complete', true);
 }
 
 export function deComplete() {
     console.log('deComplete')
-    conn.writeItems('complete', false, valuesWritten);
+    conn.writeItems('complete', false);
 }
 
 export function reset() {
@@ -159,11 +155,11 @@ export function reset() {
 }
 
 export function yellowOn() {
-    conn.writeItems('yellow', true, valuesWritten);
+    conn.writeItems('yellow', true);
 }
 
 export function yellowOff() {
-    conn.writeItems('yellow', false, valuesWritten);
+    conn.writeItems('yellow', false);
 }
 
 export function stopRelease() {
@@ -171,11 +167,11 @@ export function stopRelease() {
 }
 
 export function selectModeOn() {
-    conn.writeItems('selectMode', true, valuesWritten);
+    conn.writeItems('selectMode', true);
 }
 
 export function selectModeOff() {
-    conn.writeItems('selectMode', false, valuesWritten);
+    conn.writeItems('selectMode', false);
 }
 
 export function start() {

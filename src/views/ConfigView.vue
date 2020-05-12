@@ -209,12 +209,14 @@
                 if (n === '←') {
                     this.field[field] = this.field[field].substr(0, this.field[field].length - 1)
                     if (this.field[field] === '' && type !== 'password') this.field[field] = '0'
-                } else if (n !== 'Enter' && n !== '' && this.field[field].length < 10) {
+                } else if (n !== 'Enter' && n !== 'Clear' && n !== '' && this.field[field].length < 10) {
                     const index = this.field[field].indexOf('.')
                     if (n === '.' && index !== -1) return
                     if (index !== -1 && this.field[field].length - 1 > index) return;
 
                     this.field[field] = (this.field[field] === '0') ? n + '' : this.field[field] + n
+                } else {
+                    this.field[field] = '0'
                 }
             },
             reset() {

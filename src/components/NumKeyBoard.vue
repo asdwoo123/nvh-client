@@ -3,7 +3,7 @@
         <el-popover placement="bottom" width="240" v-model="visible">
             <div class="flex wrap" v-if="type === 'password'">
                 <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '←', 0]"
-                     @click="numClick(n, field, type)"
+                     @click="handleNumClick(n)"
                      class="flex center key-box">
                     {{n}}
                 </div>
@@ -15,21 +15,21 @@
             <div class="flex" v-else>
                 <div class="flex wrap" style="width: 180px;">
                     <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0]"
-                         @click="numClick(n, field, type)"
+                         @click="handleNumClick(n)"
                          class="flex center key-box2">
                         {{n}}
                     </div>
                     <div class="flex center key-box2"
-                         @click="numClick('.', field, type)">
+                         @click="handleNumClick('.')">
                         .
                     </div>
                 </div>
                 <div class="flex column">
-                    <div @click="numClick('←', field, type)"
+                    <div @click="handleNumClick('←')"
                          class="flex center key-box2">
                         ←
                     </div>
-                    <div @click="numClick('Clear', field, type)"
+                    <div @click="handleNumClick('Clear')"
                          class="flex center key-box2">
                         Clear
                     </div>
@@ -50,16 +50,34 @@
 <script>
     export default {
         name: "NumKeyBoard",
-        props: ['num', 'numClick', 'type', 'field', 'width', 'height'],
+        props: ['type', 'width', 'height', 'value'],
         data: () => ({
             visible: false
         }),
         computed: {
             numBlind() {
-                return this.num.split('').map(() => '●').join('')
+                return this.value.split('').map(() => '●').join('')
             },
             numNonBlind() {
-                return this.num
+                return this.value
+            }
+        },
+        methods: {
+            handleNumClick(n) {
+                let value = this.value.toString()
+
+                if (n === '←') {
+                    value = value.substr(0, value.length - 1)
+                    if (value === '' && this.type !== 'password') value = '0'
+                } else if (n !== 'Enter' && n !== '' && value.length < 10) {
+                    const index = value.indexOf('.')
+                    if (n === '.' && index !== -1) return
+                    if (index !== -1 && value.length - 1 > index) return;
+
+                    value = (value === '0') ? n + '' : value + n
+                }
+
+                this.$emit('input', value)
             }
         }
     }

@@ -16,11 +16,26 @@
         </div>
 
         <div class="content-card-no-padding">
-            <div class="flex between center-v" style="padding: 15px;" v-bind:key="index"
-                 v-for="(key, index) in ['alertStopTime', 'cylinderWaitingTime', 'switchWaitingTime']">
-                <span style="font-size: 20px;">{{ $t(`${key}`) }}</span>
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">{{ $t('alertStopTime') }}</span>
                 <div class="flex" style="align-items: flex-end;">
-                    <NumKeyBoard :num="field[key]" :field="key" :numClick="handleNumClick"/>
+                    <NumKeyBoard v-model="alertStopTime"/>
+                    {{ $t('sec') }}
+                </div>
+            </div>
+
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">{{ $t('cylinderWaitingTime') }}</span>
+                <div class="flex" style="align-items: flex-end;">
+                    <NumKeyBoard v-model="cylinderWaitingTime"/>
+                    {{ $t('sec') }}
+                </div>
+            </div>
+
+            <div class="flex between center-v" style="padding: 15px;">
+                <span style="font-size: 20px;">{{ $t('switchWaitingTime') }}</span>
+                <div class="flex" style="align-items: flex-end;">
+                    <NumKeyBoard v-model="switchWaitingTime"/>
                     {{ $t('sec') }}
                 </div>
             </div>
@@ -48,7 +63,7 @@
                     <el-button @click="exportLang" class="big-button" style="margin-left: 20px;" type="info" plain>{{
                         $t('langExport') }}
                     </el-button>
-                    <el-select v-model="field.lang"
+                    <el-select v-model="lang"
                                style="margin-left: 20px;"
                                @change="changeLang"
                     >
@@ -70,7 +85,7 @@
         <el-dialog :title="$t('enterPassword')" :visible.sync="visible" width="600px">
             <div class="flex column center" style="height: 300px;">
                 <div class="flex" style="position: relative;">
-                    <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
+                    <NumKeyBoard v-model="password" type="password"
                                  width="350" height="60"/>
                     <el-button
                             style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
@@ -85,12 +100,12 @@
             <div class="flex column center" style="height: 350px;">
                 <div class="flex" style="position: relative; width: 720px; margin-bottom: 40px; align-items: center;">
                     <div style="font-size: 20px; margin-right: 44px;">{{ $t('currentPassword') }}</div>
-                    <NumKeyBoard :num="field.currentPwd" field="currentPwd" type="password" :numClick="handleNumClick"
+                    <NumKeyBoard v-model="currentPwd" type="password"
                                  width="350" height="60"/>
                 </div>
                 <div class="flex" style="position: relative; width: 720px; align-items: center;">
                     <div style="font-size: 20px; margin-right: 20px;">{{ $t('passwordToChange') }}</div>
-                    <NumKeyBoard :num="field.changePwd" field="changePwd" type="password" :numClick="handleNumClick"
+                    <NumKeyBoard v-model="changePwd" type="password"
                                  width="350" height="60"/>
                     <el-button @click="changePassword"
                                style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
@@ -157,15 +172,13 @@
             ipAddress: ip.address(),
             macAddress: '',
             UsingSwitch: utils.getDB('config').UsingSwitch || ['switch1', 'switch2'],
-            field: {
-                alertStopTime: utils.getDB('config').alertStopTime || '1',
-                cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime || '1',
-                switchWaitingTime: utils.getDB('config').switchWaitingTime || '1',
-                lang: utils.getDB('config').lang || 'en',
-                password: '',
-                currentPwd: '',
-                changePwd: '',
-            }
+            alertStopTime: utils.getDB('config').alertStopTime || '1',
+            cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime || '1',
+            switchWaitingTime: utils.getDB('config').switchWaitingTime || '1',
+            lang: utils.getDB('config').lang || 'en',
+            password: '',
+            currentPwd: '',
+            changePwd: ''
         }),
         computed: {
             isOnOff() {
@@ -174,16 +187,16 @@
         },
         methods: {
             saveConfig() {
-                if (this.field.password === utils.getDB('config').password) {
+                if (this.password === utils.getDB('config').password) {
                     utils.setDB('config', {
-                        alertStopTime: this.field.alertStopTime,
-                        cylinderWaitingTime: this.field.cylinderWaitingTime,
-                        switchWaitingTime: this.field.switchWaitingTime,
+                        alertStopTime: this.alertStopTime,
+                        cylinderWaitingTime: this.cylinderWaitingTime,
+                        switchWaitingTime: this.switchWaitingTime,
                         UsingSwitch: this.UsingSwitch,
-                        lang: this.field.lang,
+                        lang: this.lang,
                         password: utils.getDB('config').password
                     })
-                    i18n.locale = this.field.lang
+                    i18n.locale = this.lang
                     this.reset()
 
                     writeSetting()
@@ -203,45 +216,29 @@
                 const buffer = utils.encodeXLSX(messages)
                 fs.writeFile(path, buffer)
             },
-            handleNumClick(n, field, type) {
-
-                this.field[field] = this.field[field].toString()
-                if (n === '←') {
-                    this.field[field] = this.field[field].substr(0, this.field[field].length - 1)
-                    if (this.field[field] === '' && type !== 'password') this.field[field] = '0'
-                } else if (n !== 'Enter' && n !== '' && this.field[field].length < 10) {
-                    const index = this.field[field].indexOf('.')
-                    if (n === '.' && index !== -1) return
-                    if (index !== -1 && this.field[field].length - 1 > index) return;
-
-                    this.field[field] = (this.field[field] === '0') ? n + '' : this.field[field] + n
-                }
-            },
             reset() {
                 const {alertStopTime, cylinderWaitingTime, lang, switchWaitingTime} = utils.getDB('config')
 
-                this.field = {
-                    alertStopTime,
-                    cylinderWaitingTime,
-                    switchWaitingTime,
-                    lang,
-                    password: '',
-                    currentPwd: '',
-                    changePwd: ''
-                }
+                this.alertStopTime = alertStopTime
+                this.cylinderWaitingTime = cylinderWaitingTime
+                this.switchWaitingTime = switchWaitingTime
+                this.lang = lang
+                this.password = ''
+                this.currentPwd = ''
+                this.changePwd = ''
                 this.visible = false
                 this.visible2 = false
             },
             changePassword() {
-                if (this.field.currentPwd === utils.getDB('config').password) {
+                if (this.currentPwd === utils.getDB('config').password) {
                     utils.setDB('config', {
                         ...utils.getDB('config'),
-                        password: this.field.changePwd
+                        password: this.changePwd
                     })
                 }
 
-                this.field.currentPwd = ''
-                this.field.changePwd = ''
+                this.currentPwd = ''
+                this.changePwd = ''
                 this.visible2 = false
             },
             changeLang(value) {
@@ -255,7 +252,7 @@
                     password
                 })
 
-                i18n.locale = this.field.lang
+                i18n.locale = this.lang
             }
         }
     }

@@ -10,7 +10,8 @@
                         {{ $t('cycleTime') }}
                     </div>
                     <div>
-                        <span style="font-weight: bold; font-size: 20px;">{{(cycleTime / 20).toFixed(1) }}</span> {{ $t('sec') }}
+                        <span style="font-weight: bold; font-size: 20px;">{{(cycleTime / 20).toFixed(1) }}</span> {{
+                        $t('sec') }}
                     </div>
                 </div>
 
@@ -111,7 +112,7 @@
         <el-dialog :title="$t('enterPassword')" :visible.sync="visible2" width="600px">
             <div class="flex column center" style="height: 300px;">
                 <div class="flex" style="position: relative;">
-                    <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
+                    <NumKeyBoard v-model="password" type="password"
                                  width="350" height="60"/>
                     <el-button
                             style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
@@ -125,7 +126,7 @@
         <el-dialog :title="$t('enterPassword')" :visible.sync="visible3" width="600px">
             <div class="flex column center" style="height: 300px;">
                 <div class="flex" style="position: relative;">
-                    <NumKeyBoard :num="field.password" field="password" type="password" :numClick="handleNumClick"
+                    <NumKeyBoard v-model="password" type="password"
                                  width="350" height="60"/>
                     <el-button
                             style="width: 150px; height: 60px; font-size: 20px; position: relative; left: 20px;"
@@ -146,7 +147,17 @@
     import Moveable from 'vue-moveable';
     import utils from '@/utils'
     import NumKeyBoard from "@/components/NumKeyBoard";
-    import {changeMode, mainAirOn, mainAirOff, reset, complete, deComplete, selectModeOn, selectModeOff, start} from '@/service/mcprotocol'
+    import {
+        changeMode,
+        mainAirOn,
+        mainAirOff,
+        reset,
+        complete,
+        deComplete,
+        selectModeOn,
+        selectModeOff,
+        start
+    } from '@/service/mcprotocol'
     import {cloneDeep} from 'lodash'
 
 
@@ -162,9 +173,7 @@
             visible2: false,
             visible3: false,
             selectState: false,
-            field: {
-                password: ''
-            },
+            password: '',
             switchEnable: utils.getDB('config').UsingSwitch.length === 0
         }),
         components: {
@@ -181,7 +190,6 @@
                     selectModeOff()
                 }
             }, 1000)
-
 
 
             setInterval(() => {
@@ -239,7 +247,7 @@
         },
         methods: {
             positionSave() {
-                if (this.field.password === utils.getDB('config').password) {
+                if (this.password === utils.getDB('config').password) {
                     const productName = this.product.productName
 
                     this.productList = this.productList.map(product => {
@@ -258,7 +266,7 @@
                     this.lampDisable = false
                     this.visible2 = false
                 }
-                this.field.password = ''
+                this.password = ''
             },
             positionCancel() {
                 this.lampReset()
@@ -269,14 +277,14 @@
                 this.lampDisable = false
             },
             showModeChange() {
-                if (this.field.password === utils.getDB('config').password) {
+                if (this.password === utils.getDB('config').password) {
                     this.visible3 = false
                     this.visible = true
 
                     selectModeOn()
                     this.selectState = true
                 }
-                this.field.password = ''
+                this.password = ''
             },
             handleDrag({target, left, top}) {
                 let id = target.children[1].id
@@ -298,14 +306,6 @@
                 this.$store.commit('setProduct', productName)
                 this.visible = false
                 changeMode(index)
-            },
-            handleNumClick(n, field, type) {
-                if (n === '←') {
-                    this.field[field] = this.field[field].substr(0, this.field[field].length - 1)
-                    if (this.field[field] === '' && type !== 'password') this.field[field] = '0'
-                } else if (n !== '' && this.field[field].length < 10) {
-                    this.field[field] = (this.field[field] === '0') ? n + '' : this.field[field] + n
-                }
             },
             mainAirOnOff() {
                 if (this.air) {

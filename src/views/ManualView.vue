@@ -19,7 +19,7 @@
 
 <script>
     import { cylinderOn, cylinderOff } from '@/service/mcprotocol'
-    import {plcConfig} from '@/config'
+    import {plcConfig} from '@/config/index2'
 
     const { io } = plcConfig()
     const { sol } = io

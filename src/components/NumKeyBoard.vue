@@ -69,12 +69,14 @@
                 if (n === '←') {
                     value = value.substr(0, value.length - 1)
                     if (value === '' && this.type !== 'password') value = '0'
-                } else if (n !== 'Enter' && n !== '' && value.length < 10) {
+                } else if (n !== 'Enter' && n !== 'Clear' && n !== '' && value.length < 10) {
                     const index = value.indexOf('.')
                     if (n === '.' && index !== -1) return
                     if (index !== -1 && value.length - 1 > index) return;
 
                     value = (value === '0') ? n + '' : value + n
+                } else {
+                    value = '0'
                 }
 
                 this.$emit('input', value)

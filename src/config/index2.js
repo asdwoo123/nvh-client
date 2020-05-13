@@ -37,9 +37,6 @@ export const plcConfig = () => {
         inputPort: ['X0000', 80],
         outputPort: ['Y117', 33],
         test: ['M134', 17],
-        /*lhdSwitch: ['M168', 22],
-        rhdSwitch: ['M210', 20],
-        stop: ['M201', 1],*/
         lhdLeft: ['X0001', 1],
         lhdRight: ['X0003', 1],
         rhdLeft: ['X0002', 1],

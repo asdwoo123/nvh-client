@@ -78,7 +78,7 @@
             </div>
             <div class="flex between center-v" style="padding: 20px;">
                 <span style="font-size: 20px;">{{ $t('changePassword') }}</span>
-                <el-button @click="visible2=true" class="big-button" type="info" plain>변경</el-button>
+                <el-button @click="visible2=true" class="big-button" type="info" plain>{{ $t('change') }}</el-button>
             </div>
         </div>
         <!-- 여기서 부터 Dialog -->

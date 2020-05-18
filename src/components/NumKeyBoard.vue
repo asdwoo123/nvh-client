@@ -1,6 +1,6 @@
 <template>
     <div @click="visible=true">
-        <el-popover placement="bottom" width="240" v-model="visible" @show="handleOpenShow">
+        <el-popover placement="bottom" width="280" v-model="visible" @show="handleOpenShow">
             <div class="flex wrap" v-if="type === 'password'">
                 <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '←', 0]"
                      @click="handleNumClick(n)"
@@ -13,7 +13,7 @@
                 </div>
             </div>
             <div class="flex" v-else>
-                <div class="flex wrap" style="width: 180px;">
+                <div class="flex wrap">
                     <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0]"
                          @click="handleNumClick(n)"
                          class="flex center key-box2">
@@ -34,7 +34,7 @@
                         Clear
                     </div>
                 <div @click="visible=false"
-                     class="flex center key-box2" style="height: 110px; font-size: 15px;">
+                     class="flex center key-box2" style="height: 140px; font-size: 15px;">
                     Enter
                 </div>
                 </div>
@@ -96,8 +96,8 @@
 
 <style scoped lang="less">
     .key-box {
-        width: 70px;
-        height: 70px;
+        width: 82px;
+        height: 82px;
         border: 1px solid #d2d2d2;
         border-radius: 10px;
         font-size: 20px;
@@ -108,7 +108,7 @@
 
     .key-box2 {
         .key-box;
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
     }
 </style>

@@ -76,8 +76,8 @@
                           v-for="(lamp, index) in lamps"
                           v-bind:style="{ top: lamp.top + 'px', left: lamp.left + 'px' }">
                     <el-button circle v-if="lampDisableCheck(lamp)" :type="lampTypeCheck(lampCheck[index], lamp)"
-                               style="width: 40px;
-            height: 40px; font-size: 15px;"
+                               style="width: 50px;
+            height: 50px; font-size: 15px;"
                                @click="toggleDisable(index)">
                         <span v-if="index < 12">{{ lamp.number }}</span>
                         <span v-else>{{ lamp.number - 1 }}</span>
@@ -88,8 +88,8 @@
                           style="z-index: 1; position: absolute;"
                           v-for="(sw, index) in detectionSwitches"
                           v-bind:style="{ top: sw.top + 'px', left: sw.left + 'px' }">
-                    <el-button style="width: 40px;
-            height: 40px; font-size: 15px; display: flex; justify-content: center;"
+                    <el-button style="width: 50px;
+            height: 50px; font-size: 15px; display: flex; justify-content: center;"
                                :type="(switchCheck[index]) ? 'success' : 'danger'"
                     >
                         {{ index + 1 }}

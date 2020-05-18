@@ -13,7 +13,7 @@
                 {{product.productName}}
                 </span>
             </div>
-            <div class="flex column center" style="margin-bottom: 10px;">
+            <div class="flex column center" style="margin: 10px 0;">
                 <img class="logo" src="./assets/biglogo.jpg" alt="logo">
                 <div class="time-view">{{ currentTime }}</div>
             </div>
@@ -140,7 +140,7 @@
 
     .content {
         padding: 15px 15px 0;
-        height: calc(100% - 201px);
+        height: calc(100% - 181px);
 
         @media screen and (max-width: 800px) {
             padding: 10px;
@@ -229,7 +229,7 @@
 
     .time-view {
         font-size: 15px;
-        margin-top: 10px;
+        margin-top: 5px;
 
         @media screen and (max-width: 800px) {
             font-size: 15px;

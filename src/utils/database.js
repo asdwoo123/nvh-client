@@ -9,7 +9,7 @@ const LHD = ['LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7200', 'LHD 
     .map(name => ({
         productName: name,
         type: 'LHD',
-        lamps: range(21).map(n => ({number: n + 1, left: 0, top: 0, visible: true})),
+        lamps: range(22).map(n => ({number: n + 1, left: 0, top: 0, visible: true})),
         detectionSwitches: range(2).map(n => ({number: n + 1, left: 0, top: 0}))
     }))
 
@@ -17,7 +17,7 @@ const RHD = ['RHD HEV - 84260CZ920', 'RHD PHEV - 84260CZ950', 'RHD SHORT BODY - 
     .map(name => ({
         productName: name,
         type: 'RHD',
-        lamps: range(19).map(n => ({number: n + 1, left: 0, top: 0, visible: true})),
+        lamps: range(20).map(n => ({number: n + 1, left: 0, top: 0, visible: true})),
         detectionSwitches: range(2).map(n => ({number: n + 1, left: 0, top: 0}))
     }))
 
@@ -104,7 +104,14 @@ if (!db.get('productList').value()[0].detectionSwitches) {
     })
     db.set('productList', pl).write()
 }
-if (db.get('productList').value()[0].lamps.length > 21) db.set('productList', productList).write()
+
+if (db.get('productList').value()[0].lamps.length < 22) {
+    const pl = db.get('productList').value()
+    pl.forEach(p => {
+        p.lamps.push({number: p.lamps.length + 1, left: 0, top: 0, visible: true})
+    })
+    db.set('productList', pl).write()
+}
 
 export default {
     getDB(name) {

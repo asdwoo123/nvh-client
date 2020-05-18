@@ -72,12 +72,15 @@
             <template v-if="lamps">
                 <Moveable v-bind="moveable" @drag="handleDrag" v-bind:key="index"
                           style="z-index: 1; position: absolute;"
+                          v-if="index !== 12"
                           v-for="(lamp, index) in lamps"
                           v-bind:style="{ top: lamp.top + 'px', left: lamp.left + 'px' }">
                     <el-button circle v-if="lampDisableCheck(lamp)" :type="lampTypeCheck(lampCheck[index], lamp)"
                                style="width: 40px;
-            height: 40px; font-size: 15px;" @click="toggleDisable(index)">
-                        {{ lamp.number }}
+            height: 40px; font-size: 15px;"
+                               @click="toggleDisable(index)">
+                        <span v-if="index < 12">{{ lamp.number }}</span>
+                        <span v-else>{{ lamp.number - 1 }}</span>
                     </el-button>
                     <div :id="'l' + index"/>
                 </Moveable>
@@ -195,12 +198,12 @@
             setInterval(() => {
                 if (!this.product) return;
                 const arr = []
-                this.product.lamps.filter(x => !x.disable).forEach(lams => {
+                this.product.lamps.filter((x, i) => i !== 12).filter(x => !x.disable).forEach(lams => {
                     const index = this.product.lamps.indexOf(lams)
-                    arr.push(this.lampCheck[index])
+                    arr.push(this.getLampCheck()[index])
                 })
 
-                if (!visibleState && arr.every(v => v) && this.$store.state.detectionSwitch.every(v => v)) {
+                if (!visibleState && arr.every(v => v) && arr.length > 0 && this.$store.state.detectionSwitch.every(v => v)) {
                     visibleState = true
                     this.$store.state.workComplete = true
                     complete()
@@ -349,6 +352,15 @@
             },
             workStart() {
                 start()
+            },
+            getLampCheck() {
+                if (this.product) {
+                    const type = this.product.type
+                    if (type === 'LHD') return this.$store.state.lhdSwitch
+                    else return this.$store.state.rhdSwitch
+                } else {
+                    return []
+                }
             }
         }
     }
@@ -356,13 +368,14 @@
 
 <style scoped lang="less">
     .productView {
-        width: 670px;
-        height: 570px;
-        position: relative;
+        width: 570px;
+        height: 670px;
+        position: absolute;
+        top: 82px;
 
-        @media screen and (max-width: 1100px) {
-            width: 470px !important;
-            height: 370px !important;
+        @media screen and (max-width: 1300px) {
+            width: 400px !important;
+            height: 490px !important;
         }
     }
 

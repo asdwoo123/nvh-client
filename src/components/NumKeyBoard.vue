@@ -1,6 +1,6 @@
 <template>
     <div @click="visible=true">
-        <el-popover placement="bottom" width="240" v-model="visible">
+        <el-popover placement="bottom" width="240" v-model="visible" @show="handleOpenShow">
             <div class="flex wrap" v-if="type === 'password'">
                 <div v-bind:key="n" v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9, '←', 0]"
                      @click="handleNumClick(n)"
@@ -30,11 +30,11 @@
                         ←
                     </div>
                     <div @click="handleNumClick('Clear')"
-                         class="flex center key-box2">
+                         class="flex center key-box2" style=" font-size: 15px;">
                         Clear
                     </div>
                 <div @click="visible=false"
-                     class="flex center key-box2" style="height: 110px;">
+                     class="flex center key-box2" style="height: 110px; font-size: 15px;">
                     Enter
                 </div>
                 </div>
@@ -52,7 +52,8 @@
         name: "NumKeyBoard",
         props: ['type', 'width', 'height', 'value'],
         data: () => ({
-            visible: false
+            visible: false,
+            reset: false
         }),
         computed: {
             numBlind() {
@@ -66,6 +67,11 @@
             handleNumClick(n) {
                 let value = this.value.toString()
 
+                if (this.reset) {
+                    value = '0'
+                    this.reset = false
+                }
+
                 if (n === '←') {
                     value = value.substr(0, value.length - 1)
                     if (value === '' && this.type !== 'password') value = '0'
@@ -74,12 +80,15 @@
                     if (n === '.' && index !== -1) return
                     if (index !== -1 && value.length - 1 > index) return;
 
-                    value = (value === '0') ? n + '' : value + n
+                    value = (value === '0' && n !== '.') ? n + '' : value + n
                 } else {
                     value = '0'
                 }
 
                 this.$emit('input', value)
+            },
+            handleOpenShow() {
+                this.reset = true
             }
         }
     }

@@ -16,7 +16,7 @@
         </div>
 
         <div class="content-card-no-padding">
-            <div class="flex between center-v" style="padding: 15px;">
+            <div class="flex between center-v" style="padding: 10px;">
                 <span style="font-size: 20px;">{{ $t('alertStopTime') }}</span>
                 <div class="flex" style="align-items: flex-end;">
                     <NumKeyBoard v-model="alertStopTime"/>
@@ -24,7 +24,7 @@
                 </div>
             </div>
 
-            <div class="flex between center-v" style="padding: 15px;">
+            <div class="flex between center-v" style="padding: 10px;">
                 <span style="font-size: 20px;">{{ $t('cylinderWaitingTime') }}</span>
                 <div class="flex" style="align-items: flex-end;">
                     <NumKeyBoard v-model="cylinderWaitingTime"/>
@@ -32,7 +32,7 @@
                 </div>
             </div>
 
-            <div class="flex between center-v" style="padding: 15px;">
+            <div class="flex between center-v" style="padding: 10px;">
                 <span style="font-size: 20px;">{{ $t('switchWaitingTime') }}</span>
                 <div class="flex" style="align-items: flex-end;">
                     <NumKeyBoard v-model="switchWaitingTime"/>
@@ -40,7 +40,7 @@
                 </div>
             </div>
 
-            <div class="flex between center-v" style="padding: 15px;">
+            <div class="flex between center-v" style="padding: 10px;">
                 <span style="font-size: 20px;">{{ $t('usingSwitch') }}</span>
                 <div class="flex" style="align-items: flex-end;">
                     <el-checkbox-group v-model="UsingSwitch">
@@ -54,7 +54,7 @@
                 </div>
             </div>
 
-            <div class="flex between center-v" style="padding: 15px;">
+            <div class="flex between center-v" style="padding: 10px;">
                 <span style="font-size: 20px;">{{ $t('selectLanguage') }}</span>
                 <div>
                     <el-button @click="importLang" class="big-button" type="info" plain>
@@ -76,7 +76,7 @@
                     </el-select>
                 </div>
             </div>
-            <div class="flex between center-v" style="padding: 15px;">
+            <div class="flex between center-v" style="padding: 10px;">
                 <span style="font-size: 20px;">{{ $t('changePassword') }}</span>
                 <el-button @click="visible2=true" class="big-button" type="info" plain>변경</el-button>
             </div>

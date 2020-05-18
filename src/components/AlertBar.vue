@@ -1,5 +1,5 @@
 <template>
-    <div class="flex center" style="padding: 20px;">
+    <div class="flex center" style="padding: 10px 20px 10px;">
         <el-alert :closable="false" :title="$t(`${alert}`)"
                   :type="level" effect="dark" class="alert-bar"/>
     </div>
@@ -53,7 +53,7 @@
 
 <style scoped lang="less">
     .alert-bar {
-        height: 75px;
+        height: 65px;
         width: 100%;
 
         @media screen and (max-width: 800px) {

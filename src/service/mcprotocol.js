@@ -12,7 +12,7 @@ const {host, port} = plcConfig()
 const variables = {};
 
 const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRight', 'rhdLeft',
-    'rhdRight', 'mainAir', 'cylinderError', 'cycleTime', 'total', 'switchOneOn']
+    'rhdRight', 'mainAir', 'cylinderError', 'total', 'switchOneOn']
 
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
@@ -70,6 +70,18 @@ function connected(err) {
 
     setInterval(() => {
         conn.readAllItems(valuesReady)
+    }, 500)
+
+    setInterval(() => {
+        if (db.getDB('config').UsingSwitch.length !== 0) {
+            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete) {
+                store.state.cycleTime += 1
+            } else if (!store.state.detectionSwitch.every(v => v)) {
+                store.state.cycleTime = 0
+            }
+        } else {
+            if (store.state.isStart) store.state.cycleTime += 1
+        }
     }, 100)
 
     writeSetting()
@@ -79,14 +91,12 @@ function connected(err) {
 function valuesReady(anythingBad, values) {
     if (anythingBad) return
 
-    store.state.cycleTime = values.cycleTime
     store.state.total = values.total
 
     values.outputPort.shift()
     portList.forEach((port) => {
         if (port === 'switchAndStop') {
             store.state.lhdSwitch = values.switchAndStop.slice(0, 22)
-            store.state.lhdSwitch.splice(12, 1)
             store.state.stop = values.switchAndStop.slice(33, 34)[0]
             store.state.airAlarm = values.switchAndStop.slice(36, 37)[0]
             store.state.detectionSwitch = values.switchAndStop.slice(39, 41)
@@ -138,17 +148,17 @@ export function manualOff() {
 }
 
 export function complete() {
-    console.log('complete')
+    store.state.isComplete = true
+    store.state.isStart = false
     conn.writeItems('complete', true);
 }
 
 export function deComplete() {
-    console.log('deComplete')
+    store.state.isComplete = false
     conn.writeItems('complete', false);
 }
 
 export function reset() {
-    console.log('reset')
     conn.writeItems('reset', true, () => {
         setTimeout(() => conn.writeItems('reset', false), 500)
     });
@@ -175,7 +185,8 @@ export function selectModeOff() {
 }
 
 export function start() {
-    console.log('start')
+    store.state.cycleTime = 0
+    store.state.isStart = true
     store.state.workComplete = false
     conn.writeItems('complete', false, () => {
         conn.writeItems('start', true, () => {

@@ -29,7 +29,7 @@
             </div>
             <div style="position: absolute; top: 0; right: 0;">
                 <el-button :type="(air) ? 'success' : 'info'" @click="mainAirOnOff"
-                           style="width: 170px; height: 50px; font-size: 14px;">
+                           style="width: 250px; height: 60px; font-size: 20px;">
                     {{ $t('mainAir') }}
                 </el-button>
             </div>
@@ -102,7 +102,7 @@
 
         </div>
         <el-dialog :visible.sync="visible" top="4vh">
-            <el-button style="width: 100%; height: 50px; margin: 0 0 16px 0; font-size: 20px;" type="primary"
+            <el-button style="width: 100%; height: 70px; margin: 0 0 16px 0; font-size: 20px;" type="primary"
                        v-bind:key="index" @click="setProduct(productName, index)"
                        v-for="({productName}, index) in productList" plain>
                 {{ productName }}
@@ -368,12 +368,18 @@
 
 <style scoped lang="less">
     .productView {
-        width: 570px;
-        height: 670px;
-        position: absolute;
-        top: 82px;
+        position: relative;
+        justify-content: center;
+        align-items: center;
+        top: 50px;
 
-        @media screen and (max-width: 1300px) {
+        img {
+            position: relative;
+            width: 570px;
+            height: 750px;
+        }
+
+        @media screen and (max-width: 1000px) {
             width: 400px !important;
             height: 490px !important;
         }
@@ -387,6 +393,12 @@
         position: absolute;
         top: 0;
         right: 0;
+
+        @media screen and (min-width: 1200px) {
+            width: 250px !important;
+            height: 60px !important;
+            font-size: 20px;
+        }
 
         @media screen and (max-width: 800px) {
             width: 170px !important;
@@ -408,8 +420,15 @@
         font-size: 14px !important;
         top: 0;
         left: 0;
-        width: 140px !important;
-        height: 50px !important;
+        width: 100px !important;
+        height: 40px !important;
+
+        @media screen and (min-width: 1200px) {
+            width: 170px !important;
+            height: 60px !important;
+            font-size: 20px !important;
+            padding: 8px 10px !important;
+        }
 
         @media screen and (max-width: 800px) {
             font-size: 15px !important;

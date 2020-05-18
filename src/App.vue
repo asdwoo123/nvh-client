@@ -125,10 +125,13 @@
             padding: 0 15px;
         }
 
+
         .el-menu-item {
             font-size: 20px !important;
             height: 70px !important;
             padding: 0 13px;
+
+
 
             @media screen and (max-width: 800px) {
                 font-size: 12px !important;
@@ -163,7 +166,7 @@
         background: #ffffff;
         border: 1px solid #d2d2d2;
         width: calc(100% - 40px);
-        height: calc(100% - 74px);
+        height: calc(100% - 104px);
         padding: 15px;
     }
 
@@ -216,9 +219,9 @@
     }
 
     .big-big-button {
-        width: 110px !important;
-        height: 40px !important;
-        font-size: 15px !important;
+        width: 150px !important;
+        height: 60px !important;
+        font-size: 20px !important;
 
         @media screen and (max-width: 800px) {
             width: 72px !important;
@@ -246,7 +249,7 @@
     }
 
     .product-title {
-        font-size: 18px;
+        font-size: 20px;
         display: flex;
         align-items: flex-end;
         margin-bottom: 30px;

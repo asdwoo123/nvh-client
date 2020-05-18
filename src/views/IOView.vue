@@ -57,6 +57,15 @@
 
         button {
             margin-right: 12px;
+            width: 100px !important;
+            height: 50px !important;
+            font-size: 20px !important;
+            text-align: center !important;
+            line-height: 5px !important;
+        }
+
+        span {
+            font-size: 20px;
         }
     }
 </style>

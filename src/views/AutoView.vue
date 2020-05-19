@@ -102,14 +102,22 @@
 
         </div>
         <el-dialog :visible.sync="visible" top="4vh">
-            <el-button style="width: 100%; height: 70px; margin: 0 0 16px 0; font-size: 20px;" type="primary"
+            <div style="height: 70px; margin: 0 0 16px 0; font-size: 20px; line-height: 70px;
+             border: 1px solid #99cccc; border-radius: 4px; cursor: pointer;"
+                 :style="{background: (product.productName === productName) ? 'teal' : '#e6f2f2',
+                 color: (product.productName === productName) ? 'white' : '#606266'}"
+                 v-bind:key="index" @click="setProduct(productName, index)"
+                 v-for="({productName}, index) in productList">
+                {{ productName }}
+            </div>
+            <!--<el-button style="width: 100%; height: 70px; margin: 0 0 16px 0; font-size: 20px;" type="primary"
                        v-bind:key="index" @click="setProduct(productName, index)"
                        v-for="({productName}, index) in productList" plain>
                 {{ productName }}
                 <span v-if="product" style="float: right;">
                         <i v-if="product.productName === productName" class="el-icon-check"/>
                     </span>
-            </el-button>
+            </el-button>-->
         </el-dialog>
 
         <el-dialog :title="$t('enterPassword')" :visible.sync="visible2" width="600px">

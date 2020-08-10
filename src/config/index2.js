@@ -23,6 +23,11 @@ export const routes = () => [
         component: () => import('@/views/IOView')
     },
     {
+        path: '/history',
+        name: 'history',
+        component: () => import('@/views/HistoryView')
+    },
+    {
         path: '/config',
         name: 'configure',
         component: () => import('@/views/ConfigView')
@@ -48,6 +53,11 @@ export const plcConfig = () => {
         cylinderError: ['M358', 1],
         cycleTime: ['D1010', 1],
         total: ['D100', 1],
-        switchOneOn: ['M1000', 1]
+        primaryWork: ['D77', 4],
+        switchOneOn: ['M1000', 1],
+        cylinderErrorCheck: ['M900', 17],
+        sideJigError: ['M1500', 1],
+        incompleteWork: ['M1600', 1],
+        nokAndOk: ['D2000', 2]
     }
 }

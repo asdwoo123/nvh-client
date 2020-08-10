@@ -1,6 +1,6 @@
 import low from 'lowdb'
 import LocalStorage from 'lowdb/adapters/LocalStorage'
-import {range} from 'lodash'
+import {range, clone} from 'lodash'
 
 const adapter = new LocalStorage('db')
 const db = low(adapter)
@@ -91,13 +91,43 @@ const config = {
     lang: 'ko',
     password: '123'
 }
+
+const productConfig = {
+    productNames: {
+        0: 'NX4e LHD NON DCU - 84260N7000',
+        1: 'NX4e LHD DCU - 84260N7100',
+        2: 'NX4e LHD NON DCU (FIRE) - 84260N7050',
+        3: 'NX4e LHD HEV - 84260CZ000',
+        4: 'NX4e LHD PHEV - 84260CZ200',
+        5: 'NX4e RHD HEV - 84260CZ900',
+        6: 'NX4e RHD PHEV - 84260CZ920',
+        7: 'NX4e RHD NON DCU - 84260N7900',
+        8: 'NX4e RHD DCU - 84260N7950'
+    }
+}
+
+
+const ct = []
+const alarm = []
+
+
+/*const productNames = ['LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7100', 'LHD SHORT BODY - 84260N7050', 'LHD HEV - 84260CZ000', 'LHD PHEV - 84260CZ200',
+    'RHD HEV - 84260CZ900', 'RHD PHEV - 84260CZ920', 'RHD SHORT BODY - 84260N7900', 'RHD SHORT BODY - 84260N7950']*/
+
 db.defaults({
+    productConfig,
     productList,
     message,
-    config
+    config,
+    ct,
+    alarm
 }).write()
 
-if (!db.get('productList').value()[0].detectionSwitches) {
+if (!db.get('productConfig')) {
+    db.set('productConfig', productConfig).write()
+}
+
+/*if (!db.get('productList').value()[0].detectionSwitches) {
     const pl = db.get('productList').value()
     pl.forEach(p => {
         p.detectionSwitches = range(2).map(n => ({number: n + 1, left: 0, top: 0}))
@@ -111,7 +141,40 @@ if (db.get('productList').value()[0].lamps.length < 22) {
         p.lamps.push({number: p.lamps.length + 1, left: 0, top: 0, visible: true})
     })
     db.set('productList', pl).write()
-}
+}*/
+
+/*if (db.get('productList').value().length < 10) {
+    const pl = db.get('productList').value()
+    const productNames = ['LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7100', 'LHD HEV - 84260CZ000', 'LHD PHEV - 84260CZ200',
+        'RHD HEV - 84260CZ900', 'RHD PHEV - 84260CZ920', 'RHD SHORT BODY - 84260N7900', 'RHD SHORT BODY - 84260N7950']
+    const newPl = pl.map((v, i) => {
+        v.productName = productNames[i]
+        return v
+    })
+
+    const N7050 = clone(pl[0])
+    N7050.productName = 'LHD SHORT BODY - 84260N7050'
+    const N7150 = clone(pl[1])
+    N7150.productName = 'LHD SHORT BODY - 84260N7150'
+
+    newPl.splice(2, 0, N7050)
+    newPl.splice(3, 0, N7150)
+
+    db.set('productList', newPl).write()
+}*/
+
+/*if (db.get('productList').value()[0].productName === 'LHD SHORT BODY - 84260N7000') {
+    const pl = db.get('productList').value()
+    const productName = ['NX4e LHD NON DCU - 84260N7000', 'NX4e LHD DCU - 84260N7100', 'NX4e LHD NON DCU (FIRE) - 84260N7050', 'NX4e LHD HEV - 84260CZ000', 'NX4e LHD PHEV - 84260CZ200',
+        'NX4e RHD HEV - 84260CZ900', 'NX4e RHD PHEV - 84260CZ920', 'NX4e RHD NON DCU - 84260N7900', 'NX4e RHD DCU - 84260N7950']
+    const newPl = pl.map((v, i) => {
+        v.productName = productName[i]
+        v.type = (i < 5) ? 'LHD' : 'RHD'
+        return v
+    })
+
+    db.set('productList', newPl).write()
+}*/
 
 export default {
     getDB(name) {
@@ -119,5 +182,17 @@ export default {
     },
     setDB(name, value) {
         db.set(name, value).write()
+    },
+    pushHistory(name, value) {
+        db.get(name).unshift(value).write()
+    },
+    removeHistory(name) {
+        db.set(name, []).write()
+    },
+    getHistory(name) {
+        return db.get(name).take(20).value()
+    },
+    getHistoryPage(name, page) {
+        return db.get(name).slice(page * 5 + 20, page * 5 + 25).value()
     }
 }

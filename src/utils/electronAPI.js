@@ -6,9 +6,9 @@ export default {
             dialog.showOpenDialog(null, null, (path) => resolve(path))
         }))
     },
-    showSaveDialog() {
+    showSaveDialog(name) {
         return new Promise(((resolve) => {
-            dialog.showSaveDialog(null, {defaultPath: '/language.xlsx'}, (path) => resolve(path))
+            dialog.showSaveDialog(null, {defaultPath: (name) ? name : '/language.xlsx'}, (path) => resolve(path))
         }))
     }
 }

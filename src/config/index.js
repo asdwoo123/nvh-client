@@ -23,6 +23,11 @@ export const routes = () => [
         component: () => import('@/views/IOView')
     },
     {
+        path: '/history',
+        name: 'history',
+        component: () => import('@/views/HistoryView')
+    },
+    {
         path: '/config',
         name: 'configure',
         component: () => import('@/views/ConfigView')

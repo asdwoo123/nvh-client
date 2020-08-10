@@ -50,7 +50,29 @@ export default new Vuex.Store({
         total: 0,
         workComplete: false,
         switchOneOn: false,
-        detectionSwitch: [false, false]
+        green: false,
+        detectionSwitch: [false, false],
+        cylinderErrorCheck: range(17).map(v => false),
+        leftErr: false,
+        rightErr: false,
+        primaryWork: [0, 0, 0, 0],
+        sideJigError: false,
+        incompleteWork: false,
+        nokAndOk: [0, 0]
+    },
+    getters: {
+        isHoleChecking: (state) => {
+            if (state.product) {
+
+                if (productList.indexOf(productList.find(v => v.productName === state.product.productName)) === 2) {
+                    return state.inputPort.slice(66, 68).map(v => v.portValue).every(v => !v)
+                } else {
+                    return true
+                }
+            } else {
+                return false
+            }
+        }
     },
     mutations: {
         setProduct(state, productName) {

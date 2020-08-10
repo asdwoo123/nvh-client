@@ -1,22 +1,24 @@
 import {plcConfig} from '@/config/index2'
 import store from '@/store'
+import utils from '@/utils'
 import {range} from 'lodash'
 import db from '@/utils/database'
 
 const mc = require('mcprotocol')
 const conn = new mc
 
-
 const {host, port} = plcConfig()
 
 const variables = {};
 
 const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRight', 'rhdLeft',
-    'rhdRight', 'mainAir', 'cylinderError', 'total', 'switchOneOn']
+    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork']
 
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
 })
+
+const {isHoleChecking} = store.getters
 
 
 const cylinders = range(17).map(n => 'cylinder' + (n + 1))
@@ -24,7 +26,6 @@ const cylinders = range(17).map(n => 'cylinder' + (n + 1))
 range(17).forEach(n => {
     variables['cylinder' + (n + 1)] = 'M' + (134 + n) + ',1'
 })
-
 
 variables.mode = 'M336,8'
 
@@ -40,7 +41,7 @@ variables.alertStopTime = 'D1000,1'
 
 variables.cylinderWaitingTime = 'D1020,1'
 
-variables.switchWaitingTime = 'D1030,1',
+variables.switchWaitingTime = 'D1030,1'
 
 variables.UsingSwitch = 'M400,2'
 
@@ -56,6 +57,14 @@ variables.selectMode = 'M290,1'
 
 variables.start = 'M500,1'
 
+variables.hole = 'M950,1'
+
+variables.missMatch = 'M951,1'
+
+variables.cycleRun = 'M960,1'
+
+variables.holeMode = 'M3360,1'
+
 conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)
 
 function connected(err) {
@@ -67,24 +76,143 @@ function connected(err) {
 
     conn.addItems(portList)
     conn.addItems('allHp')
+    writeSetting()
+    let working = false
+    let hole = false
+    let cycle = false
+    let wc = false
+    let incompleteWork = false
+
+    const productList = utils.getDB('productList')
 
     setInterval(() => {
         conn.readAllItems(valuesReady)
-    }, 500)
 
-    setInterval(() => {
+        if (store.state.product) {
+            if (store.state.incompleteWork) {
+                if (!incompleteWork) {
+                    utils.pushHistory('alarm', {
+                        model: store.state.product.productName,
+                        message: 'incompleteWork',
+                        time: new Date()
+                    })
+                }
+                incompleteWork = true
+            } else {
+                incompleteWork = false
+            }
+        }
+
         if (db.getDB('config').UsingSwitch.length !== 0) {
-            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete) {
-                store.state.cycleTime += 1
-            } else if (!store.state.detectionSwitch.every(v => v)) {
+            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product) {
+
+                if (productList.indexOf(productList.find(v => v.productName === store.state.product.productName)) !== 2) {
+                    working = true
+                    if (!cycle) {
+                        conn.writeItems('cycleRun', true);
+                        cycle = true
+                    }
+                } else if (store.state.inputPort.slice(66, 68).map(v => v.portValue).every(v => !v) || working) {
+                    working = true
+                    if (!cycle) {
+                        conn.writeItems('cycleRun', true, () => {
+                            if (hole) {
+                                holeOff()
+                                hole = false
+                            }
+                        });
+                        cycle = true
+                    } else {
+                        if (hole) {
+                            holeOff()
+                            hole = false
+                        }
+                    }
+
+                } else {
+                    if (!hole) {
+                        holeOn()
+                        hole = true
+                    }
+                }
+
+
+
+            } else if (store.state.detectionSwitch.every(v => !v)) {
                 store.state.cycleTime = 0
+                if (cycle) {
+                    cycle = false
+                    conn.writeItems('cycleRun', false, () => {
+                        if (hole) {
+                            holeOff()
+                            hole = false
+                        }
+                    });
+                } else {
+                    if (hole) {
+                        holeOff()
+                        hole = false
+                    }
+                }
+
+                working = false
+                wc = false
+            }
+
+
+            if (store.state.workComplete) {
+
+                working = false
+
+                if (!wc) {
+                    if (store.state.product) {
+                        utils.pushHistory('ct', {
+                            model: store.state.product.productName,
+                            cycleTime: store.state.cycleTime / 10,
+                            time: new Date()
+                        })
+                    }
+
+                    wc = true
+                }
+
+                if (cycle) {
+                    conn.writeItems('cycleRun', false);
+                    cycle = false
+                }
             }
         } else {
-            if (store.state.isStart) store.state.cycleTime += 1
+            if (store.state.isStart) {
+                working = true
+                if (!cycle) {
+                    conn.writeItems('cycleRun', true);
+                    cycle = true
+                }
+
+            }
         }
+
+        const {product, lhdLeft, lhdRight, rhdLeft, rhdRight} = store.state
+
+        if (product) {
+            const type = product.type
+            if (type === 'LHD') {
+                store.state.leftErr = !lhdLeft;
+                store.state.rightErr = !lhdRight;
+            } else if (type === 'RHD') {
+                store.state.leftErr = !rhdLeft;
+                store.state.rightErr = !rhdRight;
+            }
+
+        }
+    }, 500)
+
+
+    setInterval(() => {
+        if (working) store.state.cycleTime += 1
     }, 100)
 
-    writeSetting()
+
 }
 
 
@@ -92,6 +220,8 @@ function valuesReady(anythingBad, values) {
     if (anythingBad) return
 
     store.state.total = values.total
+    store.state.primaryWork = values.primaryWork
+    store.state.nokAndOk = values.nokAndOk
 
     values.outputPort.shift()
     portList.forEach((port) => {
@@ -127,8 +257,13 @@ export function cylinderOff(index) {
     conn.writeItems(cylinders[index], false);
 }
 
-export function changeMode(index) {
-    conn.writeItems('mode', range(8).map(n => (n === index)));
+export function changeMode(index, isHole) {
+    conn.writeItems('selectMode', false, () => {
+        conn.writeItems('mode', range(8).map(n => (n === index)), () => {
+            if (isHole) conn.writeItems('holeMode', true)
+            else conn.writeItems('holeMode', false)
+        })
+    });
 }
 
 export function mainAirOn() {
@@ -137,6 +272,27 @@ export function mainAirOn() {
 
 export function mainAirOff() {
     conn.writeItems('mainAir', false);
+}
+
+export function holeOn() {
+    utils.pushHistory('alarm', {
+        model: store.state.product.productName,
+        message: 'isHoleCheck',
+        time: new Date()
+    })
+    conn.writeItems('hole', true);
+}
+
+export function holeOff() {
+    conn.writeItems('hole', false);
+}
+
+export function missMatchOn() {
+    conn.writeItems('missMatch', true);
+}
+
+export function missMatchOff() {
+    conn.writeItems('missMatch', false);
 }
 
 export function manualOn() {
@@ -185,6 +341,8 @@ export function selectModeOff() {
 }
 
 export function start() {
+    if (!isHoleChecking) return
+
     store.state.cycleTime = 0
     store.state.isStart = true
     store.state.workComplete = false
@@ -205,7 +363,7 @@ export function writeSetting() {
                     const s1 = switchs.find(s => s === 'switch1')
                     const s2 = switchs.find(s => s === 'switch2')
 
-                    conn.writeItems('UsingSwitch', [!s1, !s2], () =>  deComplete())
+                    conn.writeItems('UsingSwitch', [!s1, !s2], () => deComplete())
                 }
             )
         })

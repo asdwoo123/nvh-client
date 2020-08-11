@@ -1,6 +1,7 @@
 import low from 'lowdb'
 import LocalStorage from 'lowdb/adapters/LocalStorage'
-import {range, clone} from 'lodash'
+import {range, clone, groupBy} from 'lodash'
+import moment from "moment";
 
 const adapter = new LocalStorage('db')
 const db = low(adapter)
@@ -184,13 +185,48 @@ export default {
         db.set(name, value).write()
     },
     pushHistory(name, value) {
+        if (db.get(name).size().value() > 15000) {
+            db.set(name, db.get(name).value().slice(0, 10000)).write()
+        }
+
         db.get(name).unshift(value).write()
     },
     removeHistory(name) {
         db.set(name, []).write()
     },
     getHistory(name) {
-        return db.get(name).take(20).value()
+        if (name === 'uph') {
+
+            let result = db.get('ct').value().filter(v => {
+                const time = v.time
+
+                return moment(time).toDate().getTime() > moment(moment().format('YYYY-MM-DD')).subtract(9, 'd').toDate().getTime()
+            })
+
+            result = groupBy(result, function (v) {
+                return moment(v.time).date()
+            })
+
+            for (const [key, value] of Object.entries(clone(result))) {
+                const res = groupBy(value, function (v) {
+                    return moment(v.time).hour()
+                })
+
+                for (const [key, value] of Object.entries(clone(res))) {
+                    res[key] = value.length
+                }
+
+                result[key] = res
+            }
+
+            return Object.entries(result).map(v => {
+                v[1].day = v[0]
+                return v[1]
+            })
+
+        } else {
+            return db.get(name).take(20).value()
+        }
     },
     getHistoryPage(name, page) {
         return db.get(name).slice(page * 5 + 20, page * 5 + 25).value()

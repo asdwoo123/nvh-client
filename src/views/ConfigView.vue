@@ -205,7 +205,8 @@ export default {
           switchWaitingTime: this.switchWaitingTime,
           UsingSwitch: this.UsingSwitch,
           lang: this.lang,
-          password: utils.getDB('config').password
+          password: utils.getDB('config').password,
+          target: utils.getDB('config').target || 0
         })
         i18n.locale = this.lang
         this.reset()

@@ -52,7 +52,7 @@ export default new Vuex.Store({
         switchOneOn: false,
         green: false,
         detectionSwitch: [false, false],
-        cylinderErrorCheck: range(17).map(v => false),
+        cylinderErrorCheck: range(17).map(() => false),
         leftErr: false,
         rightErr: false,
         primaryWork: [0, 0, 0, 0],

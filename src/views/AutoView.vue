@@ -26,7 +26,7 @@
           </div>
           <el-button @click="totalReset" style="border-radius: 0; font-size: 20px;" type="info" plain>Reset
           </el-button>
-          <el-button :type="(green) ? 'success' : 'info'" style="width: 60px; height: 60px;" circle/>
+          <!--<el-button :type="(green) ? 'success' : 'info'" style="width: 60px; height: 60px;" circle/>-->
         </div>
 
       </div>

@@ -42,6 +42,9 @@ import {routes} from '@/config/index2'
 import AlertBar from "@/components/AlertBar";
 
 const fs = require('fs')
+const path = require('path')
+const {remote} = require('electron');
+const {app} = remote;
 
 const productList = utils.getDB('productList')
 
@@ -89,7 +92,7 @@ export default {
     }
   },
   mounted() {
-    fs.writeFileSync('productList.json', JSON.stringify({productList}), 'utf8')
+    fs.writeFileSync(path.join(app.getAppPath(), 'productList.json'), JSON.stringify({productList}), 'utf8')
 
     setInterval(() => {
       this.currentTime = moment().format('L LT')

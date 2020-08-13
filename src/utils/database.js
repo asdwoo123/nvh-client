@@ -200,7 +200,8 @@ export default {
             let result = db.get('ct').value().filter(v => {
                 const time = v.time
 
-                return moment(time).toDate().getTime() > moment(moment().format('YYYY-MM-DD')).subtract(9, 'd').toDate().getTime()
+                return moment(moment().add(1, 'd').format('YYYY-MM-DD')).toDate().getTime() > moment(time).toDate().getTime() &&
+                     moment(moment().format('YYYY-MM-DD')).subtract(9, 'd').toDate().getTime() < moment(time).toDate().getTime()
             })
 
             result = groupBy(result, function (v) {

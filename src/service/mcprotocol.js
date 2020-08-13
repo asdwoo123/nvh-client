@@ -3,6 +3,7 @@ import store from '@/store'
 import utils from '@/utils'
 import {range} from 'lodash'
 import db from '@/utils/database'
+import moment from "moment";
 
 const mc = require('mcprotocol')
 const conn = new mc
@@ -17,6 +18,14 @@ const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRig
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
 })
+
+/*range(100).forEach(() => {
+    utils.pushHistory('ct', {
+        model: 'test model',
+        cycleTime: Math.floor(Math.random() * 1000),
+        time: moment().subtract(Math.floor(Math.random() * 10), 'h')
+    })
+})*/
 
 const {isHoleChecking} = store.getters
 
@@ -369,3 +378,5 @@ export function writeSetting() {
         })
     })
 }
+
+

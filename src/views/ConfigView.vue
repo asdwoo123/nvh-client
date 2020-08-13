@@ -268,14 +268,15 @@ export default {
       this.visible2 = false
     },
     changeLang(value) {
-      const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password } = utils.getDB('config')
+      const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password, target } = utils.getDB('config')
       utils.setDB('config', {
         alertStopTime,
         cylinderWaitingTime,
         switchWaitingTime,
         UsingSwitch,
         lang: value,
-        password
+        password,
+        target: target || 0
       })
 
       i18n.locale = this.lang

@@ -34,7 +34,7 @@
         <div class="flex table-card-row">
           <div class="table-card-cell" style="flex: 1; background-color: #f5f7fa; color: #909399; font-weight: 500;">Day</div>
           <div class="table-card-cell" style="flex: 1; background-color: #f5f7fa; color: #909399; font-weight: 500;" :key="n" v-for="n in range(24)">
-            {{ n }}
+            {{ n + 1 }}
           </div>
         </div>
         <div :key="index" v-for="(v, index) in data" class="flex table-card-row">

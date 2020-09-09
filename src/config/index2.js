@@ -58,6 +58,7 @@ export const plcConfig = () => {
         cylinderErrorCheck: ['M900', 17],
         sideJigError: ['M1500', 1],
         incompleteWork: ['M1600', 1],
-        nokAndOk: ['D2000', 2]
+        nokAndOk: ['D2000', 2],
+        toolSensor: ['D3200', 1]
     }
 }

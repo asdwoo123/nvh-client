@@ -30,6 +30,19 @@
         </el-button>
       </div>
     </el-dialog>
+
+    <el-dialog :title="$t('inCompleteWork')" :visible.sync="visible2"
+               width="700px" :close-on-click-modal="false" :show-close="false">
+      <div class="flex center" style="height: 300px;">
+        <div class="flex">
+          <NumKeyBoard v-model="password" type="password" width="350" height="60" />
+          <el-button type="info" style="width: 150px; height: 60px; font-size: 25px;" @click="inCompleteAlarmReset">
+            {{ $t('reset') }}
+          </el-button>
+        </div>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -37,9 +50,10 @@
 import router from "@/router"
 import utils from '@/utils'
 import moment from "moment"
-import {manualOn, manualOff, yellowOn, stopRelease} from '@/service/mcprotocol'
+import {manualOn, manualOff, yellowOn, stopRelease, inCompleteReset} from '@/service/mcprotocol'
 import {routes} from '@/config/index2'
 import AlertBar from "@/components/AlertBar";
+import NumKeyBoard from "@/components/NumKeyBoard";
 
 const fs = require('fs')
 const path = require('path')
@@ -50,12 +64,13 @@ const productList = utils.getDB('productList')
 
 export default {
   name: 'app',
-  components: {AlertBar},
+  components: {AlertBar, NumKeyBoard},
   router,
   data: () => ({
     activeIndex: '/auto',
     currentTime: moment().format('L LT'),
-    routes: routes().slice(1)
+    routes: routes().slice(1),
+    password: ''
   }),
   computed: {
     product() {
@@ -63,6 +78,13 @@ export default {
     },
     visible() {
       return this.$store.state.stop
+    },
+    visible2() {
+      if ((utils.getDB('config').alarmReset) ? (utils.getDB('config').alarmReset === 'Enable') : true) {
+        return this.$store.state.incompleteWork
+      } else {
+        return false
+      }
     }
   },
   methods: {
@@ -88,7 +110,11 @@ export default {
     },
     safetyReset() {
       stopRelease()
-      this.visible = false
+    },
+    inCompleteAlarmReset() {
+      if (utils.getDB('config').password === this.password) {
+        inCompleteReset()
+      }
     }
   },
   mounted() {
@@ -274,6 +300,12 @@ export default {
 
 
 .el-checkbox-button__inner {
+  width: 160px;
+  height: 60px;
+  font-size: 25px !important;
+}
+
+.el-radio-button__inner {
   width: 160px;
   height: 60px;
   font-size: 25px !important;

@@ -16,7 +16,7 @@
     </div>
 
     <div class="content-card-no-padding">
-      <div class="flex between center-v" style="padding: 20px;">
+      <div class="flex between center-v configList">
         <span style="font-size: 25px;">{{ $t('alertStopTime') }}</span>
         <div class="flex" style="align-items: flex-end; font-size: 20px;">
           <NumKeyBoard v-model="alertStopTime"/>
@@ -24,7 +24,7 @@
         </div>
       </div>
 
-      <div class="flex between center-v" style="padding: 20px;">
+      <div class="flex between center-v configList">
         <span style="font-size: 25px;">{{ $t('cylinderWaitingTime') }}</span>
         <div class="flex" style="align-items: flex-end; font-size: 20px;">
           <NumKeyBoard v-model="cylinderWaitingTime"/>
@@ -32,7 +32,7 @@
         </div>
       </div>
 
-      <div class="flex between center-v" style="padding: 20px;">
+      <div class="flex between center-v configList">
         <span style="font-size: 25px;">{{ $t('switchWaitingTime') }}</span>
         <div class="flex" style="align-items: flex-end; font-size: 20px;">
           <NumKeyBoard v-model="switchWaitingTime"/>
@@ -40,7 +40,19 @@
         </div>
       </div>
 
-      <div class="flex between center-v" style="padding: 20px;">
+      <div class="flex between center-v configList">
+        <span>
+          {{ $t('alarmReset') }}
+        </span>
+        <div>
+          <el-radio-group v-model="alarmReset">
+            <el-radio-button label="Enable" />
+            <el-radio-button label="Disable" />
+          </el-radio-group>
+        </div>
+      </div>
+
+      <div class="flex between center-v configList">
         <span style="font-size: 25px;">{{ $t('usingSwitch') }}</span>
         <div class="flex" style="align-items: flex-end;">
           <el-checkbox-group v-model="UsingSwitch">
@@ -54,7 +66,7 @@
         </div>
       </div>
 
-      <div class="flex between center-v" style="padding: 20px;">
+      <div class="flex between center-v configList">
         <span style="font-size: 25px;">{{ $t('selectLanguage') }}</span>
         <div>
           <el-button @click="importLang" class="big-button" type="info" plain>
@@ -76,7 +88,7 @@
           </el-select>
         </div>
       </div>
-      <div class="flex between center-v" style="padding: 20px;">
+      <div class="flex between center-v configList">
         <span style="font-size: 25px;">{{ $t('setProductConfig') }}</span>
         <div>
           <el-button @click="importProductConfig" class="big-button" type="info" plain>
@@ -185,6 +197,7 @@ export default {
     UsingSwitch: utils.getDB('config').UsingSwitch || ['switch1', 'switch2'],
     alertStopTime: utils.getDB('config').alertStopTime || '1',
     cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime || '1',
+    alarmReset: utils.getDB('config').alarmReset || 'enable',
     switchWaitingTime: utils.getDB('config').switchWaitingTime || '1',
     lang: utils.getDB('config').lang || 'en',
     password: '',
@@ -203,6 +216,7 @@ export default {
           alertStopTime: this.alertStopTime,
           cylinderWaitingTime: this.cylinderWaitingTime,
           switchWaitingTime: this.switchWaitingTime,
+          alarmReset: this.alarmReset,
           UsingSwitch: this.UsingSwitch,
           lang: this.lang,
           password: utils.getDB('config').password,
@@ -243,11 +257,12 @@ export default {
       fs.writeFileSync(path, buffer)
     },
     reset() {
-      const {alertStopTime, cylinderWaitingTime, lang, switchWaitingTime} = utils.getDB('config')
+      const {alertStopTime, cylinderWaitingTime, lang, switchWaitingTime, alarmReset} = utils.getDB('config')
 
       this.alertStopTime = alertStopTime
       this.cylinderWaitingTime = cylinderWaitingTime
       this.switchWaitingTime = switchWaitingTime
+      this.alarmReset = alarmReset || true
       this.lang = lang
       this.password = ''
       this.currentPwd = ''
@@ -268,10 +283,11 @@ export default {
       this.visible2 = false
     },
     changeLang(value) {
-      const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password, target } = utils.getDB('config')
+      const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password, target, alarmReset } = utils.getDB('config')
       utils.setDB('config', {
         alertStopTime,
         cylinderWaitingTime,
+        alarmReset: alarmReset || true,
         switchWaitingTime,
         UsingSwitch,
         lang: value,
@@ -291,6 +307,20 @@ export default {
 
   div {
     font-size: 25px;
+  }
+}
+
+.configList {
+  padding: 15px;
+
+  span {
+    font-size: 25px;
+  }
+
+  div {
+    display: flex;
+    align-items: flex-end;
+    font-size: 20px;
   }
 }
 </style>

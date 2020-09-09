@@ -3,7 +3,7 @@ import store from '@/store'
 import utils from '@/utils'
 import {range} from 'lodash'
 import db from '@/utils/database'
-import moment from "moment";
+/*import moment from "moment";*/
 
 const mc = require('mcprotocol')
 const conn = new mc
@@ -13,17 +13,17 @@ const {host, port} = plcConfig()
 const variables = {};
 
 const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRight', 'rhdLeft',
-    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork']
+    'rhdRight', 'mainAir', 'cylinderError', 'total', 'toolSensor', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork']
 
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
 })
 
-/*range(100).forEach(() => {
+/*range(1000).forEach(() => {
     utils.pushHistory('ct', {
         model: 'test model',
         cycleTime: Math.floor(Math.random() * 1000),
-        time: moment().subtract(Math.floor(Math.random() * 10), 'h')
+        time: moment().add(Math.floor(Math.random() * 1000), 'h')
     })
 })*/
 
@@ -74,6 +74,8 @@ variables.cycleRun = 'M960,1'
 
 variables.holeMode = 'M3360,1'
 
+variables.inCompleteReset = 'M371,1'
+
 conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)
 
 function connected(err) {
@@ -118,18 +120,18 @@ function connected(err) {
                 if (productList.indexOf(productList.find(v => v.productName === store.state.product.productName)) !== 2) {
                     working = true
                     if (!cycle) {
-                        conn.writeItems('cycleRun', true);
+
                         cycle = true
                     }
                 } else if (store.state.inputPort.slice(66, 68).map(v => v.portValue).every(v => !v) || working) {
                     working = true
                     if (!cycle) {
-                        conn.writeItems('cycleRun', true, () => {
+                        cycleRunStart(() => {
                             if (hole) {
                                 holeOff()
                                 hole = false
                             }
-                        });
+                        })
                         cycle = true
                     } else {
                         if (hole) {
@@ -194,7 +196,7 @@ function connected(err) {
             if (store.state.isStart) {
                 working = true
                 if (!cycle) {
-                    conn.writeItems('cycleRun', true);
+                    cycleRunStart()
                     cycle = true
                 }
 
@@ -224,6 +226,7 @@ function connected(err) {
 
 }
 
+let inCompleteWork = false
 
 function valuesReady(anythingBad, values) {
     if (anythingBad) return
@@ -231,6 +234,19 @@ function valuesReady(anythingBad, values) {
     store.state.total = values.total
     store.state.primaryWork = values.primaryWork
     store.state.nokAndOk = values.nokAndOk
+    store.state.toolSensor = values.toolSensor
+
+    if ((utils.getDB('config').alarmReset) ? (utils.getDB('config').alarmReset === 'Enable') : true) {
+        if (!inCompleteWork && values.incompleteWork) {
+            conn.writeItems('inCompleteReset', true, function () {
+                inCompleteWork = true
+            })
+        }
+
+        if (inCompleteWork && !values.incompleteWork) {
+            inCompleteWork = false
+        }
+    }
 
     values.outputPort.shift()
     portList.forEach((port) => {
@@ -240,7 +256,6 @@ function valuesReady(anythingBad, values) {
             store.state.airAlarm = values.switchAndStop.slice(36, 37)[0]
             store.state.detectionSwitch = values.switchAndStop.slice(39, 41)
             store.state.rhdSwitch = values.switchAndStop.slice(42)
-
         } else {
             if (values[port].length > 1) {
                 values[port].forEach((value, index) => {
@@ -347,6 +362,15 @@ export function selectModeOn() {
 
 export function selectModeOff() {
     conn.writeItems('selectMode', false);
+}
+
+export function inCompleteReset() {
+    conn.writeItems('inCompleteReset', false)
+}
+
+export function cycleRunStart(callback) {
+    if (inCompleteWork) return
+    conn.writeItems('cycleRun', true, callback);
 }
 
 export function start() {

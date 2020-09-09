@@ -88,6 +88,7 @@ const config = {
     alertStopTime: 3,
     cylinderWaitingTime: 3,
     switchWaitingTime: 3,
+    alarmReset: 'Enable',
     UsingSwitch: ['switch1', 'switch2'],
     lang: 'ko',
     password: '123'
@@ -115,18 +116,24 @@ const alarm = []
 /*const productNames = ['LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7100', 'LHD SHORT BODY - 84260N7050', 'LHD HEV - 84260CZ000', 'LHD PHEV - 84260CZ200',
     'RHD HEV - 84260CZ900', 'RHD PHEV - 84260CZ920', 'RHD SHORT BODY - 84260N7900', 'RHD SHORT BODY - 84260N7950']*/
 
+const toolSensor = range(2).map(() =>
+        (
+            {
+                top: 50,
+                left: 50
+            })
+        )
+
+
 db.defaults({
     productConfig,
     productList,
     message,
     config,
     ct,
-    alarm
+    alarm,
+    toolSensor
 }).write()
-
-if (!db.get('productConfig')) {
-    db.set('productConfig', productConfig).write()
-}
 
 /*if (!db.get('productList').value()[0].detectionSwitches) {
     const pl = db.get('productList').value()
@@ -197,16 +204,19 @@ export default {
     getHistory(name) {
         if (name === 'uph') {
 
-            let result = db.get('ct').value().filter(v => {
+            let result = db.get('ct').value().filter(v => v.time && Date.parse(v.time))/*.filter(v => {
                 const time = v.time
 
+                if (!Date.parse(time)) return false
+
                 return moment(moment().add(1, 'd').format('YYYY-MM-DD')).toDate().getTime() > moment(time).toDate().getTime() &&
-                     moment(moment().format('YYYY-MM-DD')).subtract(9, 'd').toDate().getTime() < moment(time).toDate().getTime()
-            })
+                    moment(moment().format('YYYY-MM-DD')).subtract(9, 'd').toDate().getTime() < moment(time).toDate().getTime()
+            })*/
 
             result = groupBy(result, function (v) {
                 return moment(v.time).date()
             })
+
 
             for (const [key, value] of Object.entries(clone(result))) {
                 const res = groupBy(value, function (v) {
@@ -220,7 +230,7 @@ export default {
                 result[key] = res
             }
 
-            return Object.entries(result).map(v => {
+            return Object.entries(result).slice(-10).map(v => {
                 v[1].day = v[0]
                 return v[1]
             })

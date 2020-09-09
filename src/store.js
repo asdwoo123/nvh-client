@@ -58,7 +58,9 @@ export default new Vuex.Store({
         primaryWork: [0, 0, 0, 0],
         sideJigError: false,
         incompleteWork: false,
-        nokAndOk: [0, 0]
+        nokAndOk: [0, 0],
+        toolSensor: false,
+        toolSensorCount: 0
     },
     getters: {
         isHoleChecking: (state) => {

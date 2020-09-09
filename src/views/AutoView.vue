@@ -10,8 +10,9 @@
             {{ $t('cycleTime') }}
           </div>
           <div style="font-size: 25px;">
-            <span style="font-weight: bold; font-size: 25px;">{{(cycleTime / 10).toFixed(1) }}</span> {{
-              $t('sec') }}
+            <span style="font-weight: bold; font-size: 25px;">{{ (cycleTime / 10).toFixed(1) }}</span> {{
+              $t('sec')
+            }}
           </div>
         </div>
 
@@ -77,14 +78,13 @@
         left: -70px;
         width: 50px;
         height: 50px;
-        border-radius: 50%;" />
-      <div v-if="product" :class="(leftError) ? 'led-err' : null" class="jig-led" style="left: 0;" />
-      <div v-if="product" :class="(rightError) ? 'led-err' : null" class="jig-led" style="right: 0;" />
+        border-radius: 50%;"/>
+      <div v-if="product" :class="(leftError) ? 'led-err' : null" class="jig-led" style="left: 0;"/>
+      <div v-if="product" :class="(rightError) ? 'led-err' : null" class="jig-led" style="right: 0;"/>
       <template v-if="lamps">
         <Moveable v-bind="moveable" @drag="handleDrag" v-bind:key="index"
                   style="z-index: 1; position: absolute;"
-                  v-if="index !== 12"
-                  v-for="(lamp, index) in lamps"
+                  v-for="(lamp, index) in lamps.filter((_, i) => i !== 12)"
                   v-bind:style="{ top: lamp.top + 'px', left: lamp.left + 'px' }">
           <el-button circle v-if="lampDisableCheck(lamp)" :type="lampTypeCheck(lampCheck[index], lamp)"
                      style="width: 50px;
@@ -107,6 +107,16 @@
           </el-button>
           <div :id="'l' + index"/>
         </Moveable>
+
+          <Moveable v-bind="moveable" @drag="handleDrag3"
+                    v-if="isToolUsingIndex"
+                    style="z-index: 2; position: absolute; cursor: pointer;"
+                    :style="{ top: toolSensor[0].top + 'px', left: toolSensor[0].left + 'px' }"
+          >
+            <el-progress stroke-width="15" type="circle" :status="(toolSensorCheck === 4) ? 'success' : null"
+                         :percentage="toolSensorCheck * 25" />
+          </Moveable>
+
       </template>
       <el-button :type="(holeCheck[1].portValue ? 'danger' : 'success')" v-if="isHoleProduct"
                  style=" left: 90px;" class="hole-btn">A
@@ -116,7 +126,8 @@
         B
       </el-button>
       <img v-if="product" style="width: 100%;"
-           :src='"../assets/model/" + productList.indexOf(productList.find(v => v.productName === product.productName)) + ".png"' alt="product-img">
+           :src='"../assets/model/" + productList.indexOf(productList.find(v => v.productName === product.productName)) + ".png"'
+           alt="product-img">
 
     </div>
     <el-dialog :visible.sync="visible" top="4vh">
@@ -216,7 +227,9 @@ export default {
     selectState: false,
     password: '',
     switchEnable: (Array.isArray(utils.getDB('config').UsingSwitch)) ? utils.getDB('config').UsingSwitch.length === 0 : false,
-    productNames: Object.values(utils.getDB('productConfig').productNames) || []
+    productNames: Object.values(utils.getDB('productConfig').productNames) || [],
+    toolSensor: cloneDeep(utils.getDB('toolSensor')),
+    toolUsingIndex: [1, 5]
   }),
   components: {
     NumKeyBoard,
@@ -309,6 +322,14 @@ export default {
     },
     nokAndOk() {
       return this.$store.state.nokAndOk
+    },
+    toolSensorCheck() {
+      return this.$store.state.toolSensor
+    },
+    isToolUsingIndex() {
+      const product = this.productList.find(v => v.productName === this.product.productName)
+      const index = this.productList.indexOf(product)
+      return this.toolUsingIndex.some(v => v === index)
     }
   },
   methods: {
@@ -325,6 +346,7 @@ export default {
         })
 
         utils.setDB('productList', this.productList)
+        utils.setDB('toolSensor', this.toolSensor)
 
         this.lampReset()
 
@@ -367,6 +389,11 @@ export default {
       const sw = this.product.detectionSwitches[id]
       sw.left = left
       sw.top = top
+    },
+    handleDrag3({_, left, top}) {
+      const ts = this.toolSensor[0]
+      ts.left = left
+      ts.top = top
     },
     setProduct(productName, index) {
       this.$store.commit('setProduct', productName)
@@ -434,6 +461,7 @@ export default {
     lampReset() {
       this.product.lamps = cloneDeep(this.productList.find(v => v.productName === this.product.productName).lamps)
       this.product.detectionSwitches = cloneDeep(this.productList.find(v => v.productName === this.product.productName).detectionSwitches)
+      this.toolSensor = cloneDeep(utils.getDB('toolSensor'))
     },
     workStart() {
       start()
@@ -487,8 +515,12 @@ export default {
 }
 
 @keyframes blink {
-  from  { opacity:0; }
-  to { opacity:1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .led-err {
@@ -587,28 +619,67 @@ export default {
 }
 
 @-webkit-keyframes blinkRed {
-  from { background-color: #F00; }
-  50% { background-color: #A00; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;}
-  to { background-color: #F00; }
+  from {
+    background-color: #F00;
+  }
+  50% {
+    background-color: #A00;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;
+  }
+  to {
+    background-color: #F00;
+  }
 }
+
 @-moz-keyframes blinkRed {
-  from { background-color: #F00; }
-  50% { background-color: #A00; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;}
-  to { background-color: #F00; }
+  from {
+    background-color: #F00;
+  }
+  50% {
+    background-color: #A00;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;
+  }
+  to {
+    background-color: #F00;
+  }
 }
+
 @-ms-keyframes blinkRed {
-  from { background-color: #F00; }
-  50% { background-color: #A00; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;}
-  to { background-color: #F00; }
+  from {
+    background-color: #F00;
+  }
+  50% {
+    background-color: #A00;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;
+  }
+  to {
+    background-color: #F00;
+  }
 }
+
 @-o-keyframes blinkRed {
-  from { background-color: #F00; }
-  50% { background-color: #A00; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;}
-  to { background-color: #F00; }
+  from {
+    background-color: #F00;
+  }
+  50% {
+    background-color: #A00;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;
+  }
+  to {
+    background-color: #F00;
+  }
 }
+
 @keyframes blinkRed {
-  from { background-color: #F00; }
-  50% { background-color: #A00; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;}
-  to { background-color: #F00; }
+  from {
+    background-color: #F00;
+  }
+  50% {
+    background-color: #A00;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 0;
+  }
+  to {
+    background-color: #F00;
+  }
 }
 </style>

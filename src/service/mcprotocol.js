@@ -3,7 +3,6 @@ import store from '@/store'
 import utils from '@/utils'
 import {range} from 'lodash'
 import db from '@/utils/database'
-/*import moment from "moment";*/
 
 const mc = require('mcprotocol')
 const conn = new mc
@@ -13,19 +12,11 @@ const {host, port} = plcConfig()
 const variables = {};
 
 const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRight', 'rhdLeft',
-    'rhdRight', 'mainAir', 'cylinderError', 'total', 'toolSensor', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork']
+    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork']
 
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
 })
-
-/*range(1000).forEach(() => {
-    utils.pushHistory('ct', {
-        model: 'test model',
-        cycleTime: Math.floor(Math.random() * 1000),
-        time: moment().add(Math.floor(Math.random() * 1000), 'h')
-    })
-})*/
 
 const {isHoleChecking} = store.getters
 
@@ -115,23 +106,23 @@ function connected(err) {
         }
 
         if (db.getDB('config').UsingSwitch.length !== 0) {
-            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product) {
+            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product && store.state.incompleteWork) {
 
                 if (productList.indexOf(productList.find(v => v.productName === store.state.product.productName)) !== 2) {
                     working = true
                     if (!cycle) {
-
+                        conn.writeItems('cycleRun', true);
                         cycle = true
                     }
                 } else if (store.state.inputPort.slice(66, 68).map(v => v.portValue).every(v => !v) || working) {
                     working = true
                     if (!cycle) {
-                        cycleRunStart(() => {
+                        conn.writeItems('cycleRun', true, () => {
                             if (hole) {
                                 holeOff()
                                 hole = false
                             }
-                        })
+                        });
                         cycle = true
                     } else {
                         if (hole) {
@@ -196,7 +187,7 @@ function connected(err) {
             if (store.state.isStart) {
                 working = true
                 if (!cycle) {
-                    cycleRunStart()
+                    conn.writeItems('cycleRun', true);
                     cycle = true
                 }
 
@@ -228,13 +219,13 @@ function connected(err) {
 
 let inCompleteWork = false
 
+
 function valuesReady(anythingBad, values) {
     if (anythingBad) return
 
     store.state.total = values.total
     store.state.primaryWork = values.primaryWork
     store.state.nokAndOk = values.nokAndOk
-    store.state.toolSensor = values.toolSensor
 
     if ((utils.getDB('config').alarmReset) ? (utils.getDB('config').alarmReset === 'Enable') : true) {
         if (!inCompleteWork && values.incompleteWork) {
@@ -256,6 +247,7 @@ function valuesReady(anythingBad, values) {
             store.state.airAlarm = values.switchAndStop.slice(36, 37)[0]
             store.state.detectionSwitch = values.switchAndStop.slice(39, 41)
             store.state.rhdSwitch = values.switchAndStop.slice(42)
+
         } else {
             if (values[port].length > 1) {
                 values[port].forEach((value, index) => {
@@ -368,11 +360,6 @@ export function inCompleteReset() {
     conn.writeItems('inCompleteReset', false)
 }
 
-export function cycleRunStart(callback) {
-    if (inCompleteWork) return
-    conn.writeItems('cycleRun', true, callback);
-}
-
 export function start() {
     if (!isHoleChecking) return
 
@@ -402,5 +389,3 @@ export function writeSetting() {
         })
     })
 }
-
-

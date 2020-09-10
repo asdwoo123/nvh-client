@@ -80,11 +80,12 @@ export default {
       return this.$store.state.stop
     },
     visible2() {
-      if ((utils.getDB('config').alarmReset) ? (utils.getDB('config').alarmReset === 'Enable') : true) {
+      return this.$store.state.incompleteWork
+      /*if ((utils.getDB('config').alarmReset) ? (utils.getDB('config').alarmReset === 'Enable') : true) {
         return this.$store.state.incompleteWork
       } else {
         return false
-      }
+      }*/
     }
   },
   methods: {
@@ -112,7 +113,7 @@ export default {
       stopRelease()
     },
     inCompleteAlarmReset() {
-      if (utils.getDB('config').password === this.password) {
+      if ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword : '2020' === this.password) {
         inCompleteReset()
       }
     }

@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <div class="flex between center-v configList">
+      <!--<div class="flex between center-v configList">
         <span>
           {{ $t('alarmReset') }}
         </span>
@@ -50,7 +50,7 @@
             <el-radio-button label="Disable" />
           </el-radio-group>
         </div>
-      </div>
+      </div>-->
 
       <div class="flex between center-v configList">
         <span style="font-size: 25px;">{{ $t('usingSwitch') }}</span>
@@ -99,10 +99,17 @@
           </el-button>
         </div>
       </div>
+
       <div class="flex between center-v" style="padding: 20px;">
         <span style="font-size: 25px;">{{ $t('changePassword') }}</span>
         <el-button @click="visible2=true" class="big-button" type="info" plain>{{ $t('change') }}</el-button>
       </div>
+
+      <div class="flex between center-v" style="padding: 20px;">
+        <span style="font-size: 25px;">{{ $t('alarmResetChangePassword') }}</span>
+        <el-button @click="visible4=true" class="big-button" type="info" plain>{{ $t('change') }}</el-button>
+      </div>
+
     </div>
     <!-- 여기서 부터 Dialog -->
     <el-dialog :title="$t('enterPassword')" :visible.sync="visible" width="1000px">
@@ -131,6 +138,26 @@
           <NumKeyBoard v-model="changePwd" type="password"
                        width="350" height="60"/>
           <el-button @click="changePassword"
+                     style="width: 150px; height: 60px; font-size: 25px; position: relative; left: 20px;"
+                     type="info">
+            OK
+          </el-button>
+        </div>
+      </div>
+    </el-dialog>
+
+    <el-dialog :title="$t('enterPassword')" :visible.sync="visible4" width="1000px">
+      <div class="flex column center" style="height: 350px;">
+        <div class="flex" style="position: relative; width: 720px; margin-bottom: 40px; align-items: center;">
+          <div style="font-size: 20px; margin-right: 44px;">{{ $t('currentPassword') }}</div>
+          <NumKeyBoard v-model="currentPwd2" type="password"
+                       width="350" height="60"/>
+        </div>
+        <div class="flex" style="position: relative; width: 720px; align-items: center;">
+          <div style="font-size: 25px; margin-right: 20px;">{{ $t('passwordToChange') }}</div>
+          <NumKeyBoard v-model="changePwd2" type="password"
+                       width="350" height="60"/>
+          <el-button @click="changePassword2"
                      style="width: 150px; height: 60px; font-size: 25px; position: relative; left: 20px;"
                      type="info">
             OK
@@ -192,17 +219,21 @@ export default {
     visible: false,
     visible2: false,
     visible3: false,
+    visible4: false,
     ipAddress: ip.address(),
     macAddress: '',
     UsingSwitch: utils.getDB('config').UsingSwitch || ['switch1', 'switch2'],
     alertStopTime: utils.getDB('config').alertStopTime || '1',
     cylinderWaitingTime: utils.getDB('config').cylinderWaitingTime || '1',
-    alarmReset: utils.getDB('config').alarmReset || 'enable',
+    alarmReset: utils.getDB('config').alarmReset || 'Enable',
     switchWaitingTime: utils.getDB('config').switchWaitingTime || '1',
     lang: utils.getDB('config').lang || 'en',
     password: '',
     currentPwd: '',
-    changePwd: ''
+    changePwd: '',
+    password2: '',
+    currentPwd2: '',
+    changePwd2: ''
   }),
   computed: {
     isOnOff() {
@@ -282,12 +313,24 @@ export default {
       this.changePwd = ''
       this.visible2 = false
     },
+    changePassword2() {
+      if (this.currentPwd2 === ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword : '2020')) {
+        utils.setDB('config', {
+          ...utils.getDB('config'),
+          alarmResetPassword: this.changePwd2
+        })
+      }
+
+      this.currentPwd2 = ''
+      this.changePwd2 = ''
+      this.visible4 = false
+    },
     changeLang(value) {
       const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password, target, alarmReset } = utils.getDB('config')
       utils.setDB('config', {
         alertStopTime,
         cylinderWaitingTime,
-        alarmReset: alarmReset || true,
+        alarmReset: alarmReset || 'Enable',
         switchWaitingTime,
         UsingSwitch,
         lang: value,

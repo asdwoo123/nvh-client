@@ -91,7 +91,8 @@ const config = {
     alarmReset: 'Enable',
     UsingSwitch: ['switch1', 'switch2'],
     lang: 'ko',
-    password: '123'
+    password: '123',
+    alarmResetPassword: '2020'
 }
 
 const productConfig = {

@@ -84,6 +84,7 @@ function connected(err) {
     let cycle = false
     let wc = false
     let incompleteWork = false
+    let toolSensorOn = false
 
     const productList = utils.getDB('productList')
 
@@ -107,6 +108,19 @@ function connected(err) {
 
         if (db.getDB('config').UsingSwitch.length !== 0) {
             if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product && store.state.incompleteWork) {
+
+                // 툴 센서
+                if (productList.indexOf(productList.find(v => v.productName === store.state.product.productName)) === 1) {
+                    if (store.state.toolSensor && !toolSensorOn && store.state.toolSensorCount < 5) {
+                        store.state.toolSensorCount ++
+                        toolSensorOn = true
+                    } else {
+                        if (toolSensorOn) {
+                            toolSensorOn = false
+                        }
+                    }
+                }
+
 
                 if (productList.indexOf(productList.find(v => v.productName === store.state.product.productName)) !== 2) {
                     working = true
@@ -142,6 +156,7 @@ function connected(err) {
 
             } else if (store.state.detectionSwitch.every(v => !v)) {
                 store.state.cycleTime = 0
+                store.state.toolSensorCount = 0
                 if (cycle) {
                     cycle = false
                     conn.writeItems('cycleRun', false, () => {
@@ -159,6 +174,7 @@ function connected(err) {
 
                 working = false
                 wc = false
+                toolSensorOn = false
             }
 
 

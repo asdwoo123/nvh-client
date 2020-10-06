@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import {range, cloneDeep} from 'lodash'
 import utils from '@/utils'
 import {plcConfig} from '@/config/index2'
+import fa from "element-ui/src/locale/lang/fa";
 
 
 const [inputPort, outputPort] = [plcConfig().inputPort, plcConfig().outputPort]

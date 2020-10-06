@@ -210,6 +210,9 @@ import {
   start
 } from '@/service/mcprotocol'
 import {cloneDeep} from 'lodash'
+import store from "@/store";
+
+const productList = utils.getDB('productList')
 
 
 export default {
@@ -229,7 +232,7 @@ export default {
     switchEnable: (Array.isArray(utils.getDB('config').UsingSwitch)) ? utils.getDB('config').UsingSwitch.length === 0 : false,
     productNames: Object.values(utils.getDB('productConfig').productNames) || [],
     toolSensor: cloneDeep(utils.getDB('toolSensor')),
-    toolUsingIndex: [1, 5]
+    toolUsingIndex: [1]
   }),
   components: {
     NumKeyBoard,
@@ -254,7 +257,8 @@ export default {
         arr.push(this.getLampCheck()[index])
       })
 
-      if (!visibleState && arr.every(v => v) && arr.length > 0 && this.$store.state.detectionSwitch.every(v => v) && !this.$store.state.workComplete) {
+      if (!visibleState && arr.every(v => v) && arr.length > 0 && this.$store.state.detectionSwitch.every(v => v) && !this.$store.state.workComplete &&
+          (productList.indexOf(productList.find(v => v.productName === this.$store.state.product.productName)) === 1) ? this.$store.state.toolSensorCount === 4 : true) {
         visibleState = true
         this.$store.state.workComplete = true
         complete()
@@ -324,7 +328,7 @@ export default {
       return this.$store.state.nokAndOk
     },
     toolSensorCheck() {
-      return this.$store.state.toolSensor
+      return this.$store.state.toolSensorCount
     },
     isToolUsingIndex() {
       const product = this.productList.find(v => v.productName === this.product.productName)

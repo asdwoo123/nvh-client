@@ -251,6 +251,7 @@ export default {
           UsingSwitch: this.UsingSwitch,
           lang: this.lang,
           password: utils.getDB('config').password,
+          alarmResetPassword: utils.getDB('config').alarmResetPassword || '2020',
           target: utils.getDB('config').target || 0
         })
         i18n.locale = this.lang
@@ -307,30 +308,32 @@ export default {
           ...utils.getDB('config'),
           password: this.changePwd
         })
+
+        this.currentPwd = ''
+        this.changePwd = ''
+        this.visible2 = false
       }
 
-      this.currentPwd = ''
-      this.changePwd = ''
-      this.visible2 = false
     },
     changePassword2() {
-      if (this.currentPwd2 === ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword : '2020')) {
+      if ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword === this.currentPwd2 : '2020' === this.currentPwd2) {
         utils.setDB('config', {
           ...utils.getDB('config'),
           alarmResetPassword: this.changePwd2
         })
-      }
 
-      this.currentPwd2 = ''
-      this.changePwd2 = ''
-      this.visible4 = false
+        this.currentPwd2 = ''
+        this.changePwd2 = ''
+        this.visible4 = false
+      }
     },
     changeLang(value) {
-      const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password, target, alarmReset } = utils.getDB('config')
+      const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password, target, alarmReset, alarmResetPassword } = utils.getDB('config')
       utils.setDB('config', {
         alertStopTime,
         cylinderWaitingTime,
         alarmReset: alarmReset || 'Enable',
+        alarmResetPassword: alarmResetPassword || '2020',
         switchWaitingTime,
         UsingSwitch,
         lang: value,

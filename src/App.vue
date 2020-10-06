@@ -113,7 +113,7 @@ export default {
       stopRelease()
     },
     inCompleteAlarmReset() {
-      if ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword : '2020' === this.password) {
+      if ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword === this.password : '2020' === this.password ) {
         inCompleteReset()
       }
     }

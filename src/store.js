@@ -61,12 +61,12 @@ export default new Vuex.Store({
         incompleteWork: false,
         nokAndOk: [0, 0],
         toolSensor: false,
-        toolSensorCount: 0
+        toolSensorCount: 0,
+        toolDetectSwitch: false
     },
     getters: {
         isHoleChecking: (state) => {
             if (state.product) {
-
                 if (productList.indexOf(productList.find(v => v.productName === state.product.productName)) === 2) {
                     return state.inputPort.slice(66, 68).map(v => v.portValue).every(v => !v)
                 } else {

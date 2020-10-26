@@ -6,7 +6,7 @@ import moment from "moment";
 const adapter = new LocalStorage('db')
 const db = low(adapter)
 
-const LHD = ['LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7200', 'LHD HEV - 84260CZ000', 'LHD PHEV - 84260CZ200']
+const LHD = ['NX4e LHD NON DCU - 84260N7000', 'NX4e LHD DCU - 84260N7100', 'NX4e LHD NON DCU (FIRE) - 84260N7050', 'NX4e LHD HEV - 84260CZ000', 'NX4e LHD PHEV - 84260CZ200']
     .map(name => ({
         productName: name,
         type: 'LHD',
@@ -14,7 +14,7 @@ const LHD = ['LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7200', 'LHD 
         detectionSwitches: range(2).map(n => ({number: n + 1, left: 0, top: 0}))
     }))
 
-const RHD = ['RHD HEV - 84260CZ920', 'RHD PHEV - 84260CZ950', 'RHD SHORT BODY - 84260N7900', 'RHD SHORT BODY - 84260N7910']
+const RHD = ['NX4e RHD HEV - 84260CZ900', 'NX4e RHD PHEV - 84260CZ920', 'NX4e RHD NON DCU - 84260N7900', 'NX4e RHD DCU - 84260N7950']
     .map(name => ({
         productName: name,
         type: 'RHD',
@@ -85,14 +85,16 @@ const message = {
 }
 
 const config = {
-    alertStopTime: 3,
-    cylinderWaitingTime: 3,
-    switchWaitingTime: 3,
+    alertStopTime: '3',
+    cylinderWaitingTime: '3',
+    switchWaitingTime: '3',
+    toolCount: '5',
     alarmReset: 'Enable',
     UsingSwitch: ['switch1', 'switch2'],
     lang: 'ko',
     password: '123',
-    alarmResetPassword: '2020'
+    alarmResetPassword: '2020',
+    UsingToolSensor: 'Disable'
 }
 
 const productConfig = {
@@ -117,6 +119,38 @@ const alarm = []
 /*const productNames = ['LHD SHORT BODY - 84260N7000', 'LHD SHORT BODY - 84260N7100', 'LHD SHORT BODY - 84260N7050', 'LHD HEV - 84260CZ000', 'LHD PHEV - 84260CZ200',
     'RHD HEV - 84260CZ900', 'RHD PHEV - 84260CZ920', 'RHD SHORT BODY - 84260N7900', 'RHD SHORT BODY - 84260N7950']*/
 
+const holeSensor = [
+    {
+        top: 305,
+        left: 90
+    },
+    {
+        top: 305,
+        left: 200
+    }
+]
+
+const jigCheckSensor = [
+    {
+        top: -50,
+        left: 0
+    },
+    {
+        top: -50,
+        left: 300
+    }
+]
+
+const sideJigSensor = {
+    top: 450,
+    left: -70
+}
+
+const toolDetectSwitch = {
+    top: 0,
+    left: 0
+}
+
 const toolSensor = range(2).map(() =>
         (
             {
@@ -125,7 +159,6 @@ const toolSensor = range(2).map(() =>
             })
         )
 
-
 db.defaults({
     productConfig,
     productList,
@@ -133,7 +166,11 @@ db.defaults({
     config,
     ct,
     alarm,
-    toolSensor
+    toolSensor,
+    holeSensor,
+    sideJigSensor,
+    jigCheckSensor,
+    toolDetectSwitch
 }).write()
 
 /*if (!db.get('productList').value()[0].detectionSwitches) {
@@ -217,7 +254,6 @@ export default {
             result = groupBy(result, function (v) {
                 return moment(v.time).date()
             })
-
 
             for (const [key, value] of Object.entries(clone(result))) {
                 const res = groupBy(value, function (v) {

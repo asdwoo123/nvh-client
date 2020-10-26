@@ -12,7 +12,7 @@ const {host, port} = plcConfig()
 const variables = {};
 
 const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRight', 'rhdLeft',
-    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork']
+    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork', 'toolDetectSwitch']
 
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
@@ -107,11 +107,13 @@ function connected(err) {
         }
 
         if (db.getDB('config').UsingSwitch.length !== 0) {
-            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product && store.state.incompleteWork) {
+            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product && !store.state.incompleteWork) {
+
+                const productIndex = productList.indexOf(productList.find(v => v.productName === store.state.product.productName))
 
                 // 툴 센서
-                if (productList.indexOf(productList.find(v => v.productName === store.state.product.productName)) === 1) {
-                    if (store.state.toolSensor && !toolSensorOn && store.state.toolSensorCount < 5) {
+                if ([3, 5].some(n => n === productIndex)) {
+                    if (store.state.toolSensor && !toolSensorOn && store.state.toolSensorCount <= (db.getDB('config').toolCount * 1 || 5)) {
                         store.state.toolSensorCount ++
                         toolSensorOn = true
                     } else {

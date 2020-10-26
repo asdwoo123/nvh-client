@@ -73,22 +73,33 @@
 
     </div>
     <div class="productView">
-      <div v-if="product" :class="(sideJigError) ? 'led-err' : null" style="position: absolute;
-            top: 450px;
-        left: -70px;
+      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer;" @drag="handleDrag4"
+                :style="{ top: sideJigSensor.top + 'px', left: sideJigSensor.left + 'px' }">
+        <div :class="(sideJigError) ? 'led-err' : null"
+             style="
+             border: 1px solid black;
         width: 50px;
         height: 50px;
         border-radius: 50%;"/>
-      <div v-if="product" :class="(leftError) ? 'led-err' : null" class="jig-led" style="left: 0;"/>
-      <div v-if="product" :class="(rightError) ? 'led-err' : null" class="jig-led" style="right: 0;"/>
+      </Moveable>
+      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; z-index: 3;" @drag="handleDrag7"
+      :style="{ top: jigCheckSensor[0].top + 'px', left: jigCheckSensor[0].left + 'px' }">
+        <div :class="(leftError) ? 'led-err' : null" class="jig-led" />
+      </Moveable>
+      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; z-index: 3;" @drag="handleDrag8"
+      :style="{ top: jigCheckSensor[1].top + 'px', left: (jigCheckSensor[1].left || 300) + 'px' }">
+        <div :class="(rightError) ? 'led-err' : null" class="jig-led" />
+      </Moveable>
       <template v-if="lamps">
         <Moveable v-bind="moveable" @drag="handleDrag" v-bind:key="index"
-                  style="z-index: 1; position: absolute;"
+                  style="z-index: 1; position: absolute; cursor: pointer; "
                   v-for="(lamp, index) in lamps.filter((_, i) => i !== 12)"
                   v-bind:style="{ top: lamp.top + 'px', left: lamp.left + 'px' }">
           <el-button circle v-if="lampDisableCheck(lamp)" :type="lampTypeCheck(lampCheck[index], lamp)"
                      style="width: 50px;
-            height: 50px; font-size: 15px;" :class="lampClassCheck(lampCheck[index], index)"
+                      height: 50px;
+                      font-size: 15px;"
+                     :class="lampClassCheck(lampCheck[index], index)"
                      @click="toggleDisable(index)">
             <span style="font-size: 25px;" v-if="index < 12">{{ lamp.number }}</span>
             <span style="font-size: 25px;" v-else>{{ lamp.number - 1 }}</span>
@@ -107,24 +118,39 @@
           </el-button>
           <div :id="'l' + index"/>
         </Moveable>
+        <Moveable v-if="isToolUsingIndex" v-bind="moveable" @drag="handleDrag9" style="z-index: 1; position: absolute;"
+                  v-bind:style="{ top: toolSwitchPosition.top + 'px', left: toolSwitchPosition.left + 'px' }">
+          <el-button style="width: 50px;
+            height: 50px; font-size: 25px; display: flex; justify-content: center;"
+                     :type="(toolDetectSwitch) ? 'success' : 'danger'"
+          >3</el-button>
+        </Moveable>
 
-          <Moveable v-bind="moveable" @drag="handleDrag3"
-                    v-if="isToolUsingIndex"
-                    style="z-index: 2; position: absolute; cursor: pointer;"
-                    :style="{ top: toolSensor[0].top + 'px', left: toolSensor[0].left + 'px' }"
-          >
-            <el-progress stroke-width="15" type="circle" :status="(toolSensorCheck === 4) ? 'success' : null"
-                         :percentage="toolSensorCheck * 25" />
-          </Moveable>
+        <Moveable v-bind="moveable" @drag="handleDrag3"
+                  v-if="isToolUsingIndex"
+                  style="z-index: 2; position: absolute; cursor: pointer;"
+                  :style="{ top: toolSensor[0].top + 'px', left: toolSensor[0].left + 'px' }"
+        >
+          <el-progress width="60" stroke-width="10" type="circle" :status="(toolSensorCheck === toolCount  * 1) ? 'success' : null"
+                       :percentage="toolSensorCheck * Math.floor(100 / toolCount)"/>
+        </Moveable>
 
       </template>
-      <el-button :type="(holeCheck[1].portValue ? 'danger' : 'success')" v-if="isHoleProduct"
-                 style=" left: 90px;" class="hole-btn">A
-      </el-button>
-      <el-button :type="(holeCheck[0].portValue ? 'danger' : 'success')" v-if="isHoleProduct"
-                 style="left: 200px;" class="hole-btn">
-        B
-      </el-button>
+      <Moveable @drag="handleDrag5" v-bind="moveable" v-if="isHoleProduct"
+                style="position: absolute; z-index: 2; cursor: pointer;"
+                :style="{ top: holeSensor[0].top + 'px', left: holeSensor[0].left + 'px' }">
+        <el-button :type="(holeCheck[1].portValue ? 'danger' : 'success')"
+                   class="hole-btn">A
+        </el-button>
+      </Moveable>
+      <Moveable @drag="handleDrag6" v-bind="moveable" v-if="isHoleProduct"
+                style="position: absolute; z-index: 2; cursor: pointer;"
+                :style="{ top: holeSensor[1].top + 'px', left: holeSensor[1].left + 'px' }">
+        <el-button :type="(holeCheck[0].portValue ? 'danger' : 'success')"
+                   class="hole-btn">
+          B
+        </el-button>
+      </Moveable>
       <img v-if="product" style="width: 100%;"
            :src='"../assets/model/" + productList.indexOf(productList.find(v => v.productName === product.productName)) + ".png"'
            alt="product-img">
@@ -210,9 +236,6 @@ import {
   start
 } from '@/service/mcprotocol'
 import {cloneDeep} from 'lodash'
-import store from "@/store";
-
-const productList = utils.getDB('productList')
 
 
 export default {
@@ -232,7 +255,13 @@ export default {
     switchEnable: (Array.isArray(utils.getDB('config').UsingSwitch)) ? utils.getDB('config').UsingSwitch.length === 0 : false,
     productNames: Object.values(utils.getDB('productConfig').productNames) || [],
     toolSensor: cloneDeep(utils.getDB('toolSensor')),
-    toolUsingIndex: [1]
+    holeSensor: cloneDeep(utils.getDB('holeSensor')),
+    sideJigSensor: cloneDeep(utils.getDB('sideJigSensor')),
+    jigCheckSensor: cloneDeep(utils.getDB('jigCheckSensor')),
+    toolSwitchPosition: cloneDeep(utils.getDB('toolDetectSwitch')),
+    toolUsingIndex: [3, 5],
+    UsingToolSensor: utils.getDB('config').UsingToolSensor || 'Disable',
+    toolCount: utils.getDB('config').toolCount || '5'
   }),
   components: {
     NumKeyBoard,
@@ -257,8 +286,8 @@ export default {
         arr.push(this.getLampCheck()[index])
       })
 
-      if (!visibleState && arr.every(v => v) && arr.length > 0 && this.$store.state.detectionSwitch.every(v => v) && !this.$store.state.workComplete &&
-          (productList.indexOf(productList.find(v => v.productName === this.$store.state.product.productName)) === 1) ? this.$store.state.toolSensorCount === 4 : true) {
+      if (!visibleState && arr.every(v => v) && arr.length > 0 && this.$store.state.detectionSwitch.every(v => v) && !this.$store.state.workComplete /*&&
+      (productList.indexOf(productList.find(v => v.productName === this.$store.state.product.productName)) === 1) ? this.$store.state.toolSensorCount === 4 : true*/) {
         visibleState = true
         this.$store.state.workComplete = true
         complete()
@@ -331,9 +360,13 @@ export default {
       return this.$store.state.toolSensorCount
     },
     isToolUsingIndex() {
+      if (utils.getDB('config').UsingToolSensor !== 'Enable') return false
       const product = this.productList.find(v => v.productName === this.product.productName)
       const index = this.productList.indexOf(product)
       return this.toolUsingIndex.some(v => v === index)
+    },
+    toolDetectSwitch() {
+      return this.$store.state.toolDetectSwitch
     }
   },
   methods: {
@@ -351,6 +384,10 @@ export default {
 
         utils.setDB('productList', this.productList)
         utils.setDB('toolSensor', this.toolSensor)
+        utils.setDB('holeSensor', this.holeSensor)
+        utils.setDB('sideJigSensor', this.sideJigSensor)
+        utils.setDB('jigCheckSensor', this.jigCheckSensor)
+        utils.setDB('toolDetectSwitch', this.toolSwitchPosition)
 
         this.lampReset()
 
@@ -382,6 +419,9 @@ export default {
       let id = target.children[1].id
       id = id.substr(1)
       id = parseInt(id)
+      if (id > 11) {
+        id++
+      }
       const lamp = this.product.lamps[id]
       lamp.left = left
       lamp.top = top
@@ -390,6 +430,7 @@ export default {
       let id = target.children[1].id
       id = id.substr(1)
       id = parseInt(id)
+
       const sw = this.product.detectionSwitches[id]
       sw.left = left
       sw.top = top
@@ -398,6 +439,36 @@ export default {
       const ts = this.toolSensor[0]
       ts.left = left
       ts.top = top
+    },
+    handleDrag4({_, left, top}) {
+      const ts = this.sideJigSensor
+      ts.left = left
+      ts.top = top
+    },
+    handleDrag5({_, left, top}) {
+      const ts = this.holeSensor[0]
+      ts.left = left
+      ts.top = top
+    },
+    handleDrag6({_, left, top}) {
+      const ts = this.holeSensor[1]
+      ts.left = left
+      ts.top = top
+    },
+    handleDrag7({_, left, top}) {
+      const js = this.jigCheckSensor[0]
+      js.left = left
+      js.top = top
+    },
+    handleDrag8({_, left, top}) {
+      const js = this.jigCheckSensor[1]
+      js.left = left
+      js.top = top
+    },
+    handleDrag9({_, left, top}) {
+      const tp = this.toolSwitchPosition
+      tp.left = left
+      tp.top = top
     },
     setProduct(productName, index) {
       this.$store.commit('setProduct', productName)
@@ -427,6 +498,7 @@ export default {
     },
     toggleDisable(index) {
       if (this.lampDisable) {
+        if (index > 11) index ++
         const lamp = this.product.lamps[index]
         lamp.disable = !lamp.disable;
 
@@ -455,8 +527,7 @@ export default {
           if (index === 14 && this.primaryWork[2] === 1) return 'lamp-blue'
           if (index === 16 && this.primaryWork[3] === 1) return 'lamp-blue'
         }
-
-        return 'lamp-blink'
+                return 'lamp-blink'
       }
     },
     totalReset() {
@@ -466,6 +537,9 @@ export default {
       this.product.lamps = cloneDeep(this.productList.find(v => v.productName === this.product.productName).lamps)
       this.product.detectionSwitches = cloneDeep(this.productList.find(v => v.productName === this.product.productName).detectionSwitches)
       this.toolSensor = cloneDeep(utils.getDB('toolSensor'))
+      this.holeSensor = cloneDeep(utils.getDB('holeSensor'))
+      this.sideJigSensor = cloneDeep(utils.getDB('sideJigSensor'))
+      this.jigCheckSensor = cloneDeep(utils.getDB('jigCheckSensor'))
     },
     workStart() {
       start()
@@ -503,11 +577,11 @@ export default {
 }
 
 .jig-led {
-  position: absolute;
-  top: -50px;
   width: 50px;
   height: 50px;
   border-radius: 50%;
+  z-index: 3;
+  border: 1px solid #ff6767;
 }
 
 .lamp-blink {
@@ -617,9 +691,6 @@ export default {
   width: 50px !important;
   height: 50px !important;
   font-size: 25px !important;
-  position: absolute;
-  top: 305px;
-  z-index: 2;
 }
 
 @-webkit-keyframes blinkRed {

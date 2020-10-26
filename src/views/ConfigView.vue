@@ -40,6 +40,14 @@
         </div>
       </div>
 
+      <div class="flex between center-v configList">
+        <span style="font-size: 25px;">{{ $t('toolCount') }}</span>
+        <div class="flex" style="align-items: flex-end; font-size: 20px;">
+          <NumKeyBoard v-model="toolCount"/>
+          {{ $t('cnt') }}
+        </div>
+      </div>
+
       <!--<div class="flex between center-v configList">
         <span>
           {{ $t('alarmReset') }}
@@ -51,6 +59,15 @@
           </el-radio-group>
         </div>
       </div>-->
+      <div class="flex between center-v configList">
+        <span style="font-size: 25px;">{{ $t('UsingToolSensor') }}</span>
+        <div class="flex" style="align-items: flex-end;">
+          <el-radio-group v-model="UsingToolSensor">
+            <el-radio-button label="Enable"></el-radio-button>
+            <el-radio-button label="Disable"></el-radio-button>
+          </el-radio-group>
+        </div>
+      </div>
 
       <div class="flex between center-v configList">
         <span style="font-size: 25px;">{{ $t('usingSwitch') }}</span>
@@ -100,12 +117,12 @@
         </div>
       </div>
 
-      <div class="flex between center-v" style="padding: 20px;">
+      <div class="flex between center-v" style="padding: 10px;">
         <span style="font-size: 25px;">{{ $t('changePassword') }}</span>
         <el-button @click="visible2=true" class="big-button" type="info" plain>{{ $t('change') }}</el-button>
       </div>
 
-      <div class="flex between center-v" style="padding: 20px;">
+      <div class="flex between center-v" style="padding: 10px;">
         <span style="font-size: 25px;">{{ $t('alarmResetChangePassword') }}</span>
         <el-button @click="visible4=true" class="big-button" type="info" plain>{{ $t('change') }}</el-button>
       </div>
@@ -228,6 +245,8 @@ export default {
     alarmReset: utils.getDB('config').alarmReset || 'Enable',
     switchWaitingTime: utils.getDB('config').switchWaitingTime || '1',
     lang: utils.getDB('config').lang || 'en',
+    toolCount: utils.getDB('config').toolCount || '5',
+    UsingToolSensor: utils.getDB('config').UsingToolSensor || 'Disable',
     password: '',
     currentPwd: '',
     changePwd: '',
@@ -249,6 +268,8 @@ export default {
           switchWaitingTime: this.switchWaitingTime,
           alarmReset: this.alarmReset,
           UsingSwitch: this.UsingSwitch,
+          toolCount: this.toolCount,
+          UsingToolSensor: this.UsingToolSensor,
           lang: this.lang,
           password: utils.getDB('config').password,
           alarmResetPassword: utils.getDB('config').alarmResetPassword || '2020',
@@ -289,11 +310,13 @@ export default {
       fs.writeFileSync(path, buffer)
     },
     reset() {
-      const {alertStopTime, cylinderWaitingTime, lang, switchWaitingTime, alarmReset} = utils.getDB('config')
+      const {alertStopTime, cylinderWaitingTime, lang, switchWaitingTime, alarmReset, toolCount, UsingToolSensor} = utils.getDB('config')
 
       this.alertStopTime = alertStopTime
       this.cylinderWaitingTime = cylinderWaitingTime
       this.switchWaitingTime = switchWaitingTime
+      this.toolCount = toolCount || '5'
+      this.UsingToolSensor = UsingToolSensor || 'Disable'
       this.alarmReset = alarmReset || true
       this.lang = lang
       this.password = ''
@@ -328,12 +351,14 @@ export default {
       }
     },
     changeLang(value) {
-      const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password, target, alarmReset, alarmResetPassword } = utils.getDB('config')
+      const { alertStopTime, cylinderWaitingTime, switchWaitingTime, UsingSwitch, password, target, alarmReset, alarmResetPassword, toolCount, UsingToolSensor } = utils.getDB('config')
       utils.setDB('config', {
         alertStopTime,
         cylinderWaitingTime,
         alarmReset: alarmReset || 'Enable',
         alarmResetPassword: alarmResetPassword || '2020',
+        toolCount: toolCount || 5,
+        UsingToolSensor: UsingToolSensor || 'Disable',
         switchWaitingTime,
         UsingSwitch,
         lang: value,
@@ -357,7 +382,7 @@ export default {
 }
 
 .configList {
-  padding: 15px;
+  padding: 10px;
 
   span {
     font-size: 25px;

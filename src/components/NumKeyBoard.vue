@@ -39,8 +39,8 @@
                 </div>
                 </div>
             </div>
-            <el-button slot="reference" style="margin-right: 10px; font-size: 25px; overflow-x: hidden;"
-                       :style="{width: (width) ? width + 'px' : '170px', height: (height) ? height + 'px' : '60px'}">
+            <el-button slot="reference" style="margin-right: 10px; font-size: 25px; overflow-x: hidden; overflow-y: hidden;"
+                       :style="{width: (width) ? width + 'px' : '170px', height: (height) ? height + 'px' : '50px'}">
                 {{ (type === 'password') ? numBlind : numNonBlind }}
             </el-button>
         </el-popover>

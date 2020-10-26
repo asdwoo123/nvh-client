@@ -121,6 +121,9 @@ export default {
   mounted() {
     fs.writeFileSync(path.join(app.getAppPath(), 'productList.json'), JSON.stringify({productList}), 'utf8')
 
+    const ct = utils.getDB('ct')
+    fs.writeFileSync(path.join(app.getAppPath(), 'ct.json'), JSON.stringify({ct}), 'utf8')
+
     setInterval(() => {
       this.currentTime = moment().format('L LT')
       if (this.$store.state.stop) {

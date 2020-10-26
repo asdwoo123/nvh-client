@@ -37,9 +37,9 @@
             {{ n + 1 }}
           </div>
         </div>
-        <div :key="index" v-for="(v, index) in data" class="flex table-card-row">
+        <div :key="index" v-for="(v, index) in data.filter((_, id) => id < 10)" class="flex table-card-row">
           <div class="table-card-cell" style="flex: 1">{{ v.day || '' }}</div>
-          <div class="table-card-cell" :style="{backgroundColor: (v[n] >= target || v[n] === undefined) ? '' : '#fd5954'}" style="flex: 1" :key="n" v-for="n in range(24)">
+          <div class="table-card-cell" :style="standardCheck(v[n])" style="flex: 1" :key="n" v-for="n in range(24)">
             {{ v[n] || '' }}
           </div>
         </div>
@@ -122,6 +122,17 @@ export default {
       }
 
       this.visible = false
+    },
+    standardCheck(value) {
+      let color = ''
+      if (value) {
+        if (value >= this.target) {
+          color = '#87ff46'
+        } else {
+          color = '#fd5954'
+        }
+      }
+      return {backgroundColor: color }
     }
   }
 }

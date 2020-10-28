@@ -2,14 +2,14 @@
   <div style="height: 100%;" class="flex column">
     <div class="flex" style="justify-content: space-between; margin-bottom: 30px;">
       <div class="flex">
-        <el-button :autofocus="mode === 'ct'" @click="modeChange('ct')" class="navigation-btn">CT</el-button>
-        <el-button :autofocus="mode === 'alarm'" @click="modeChange('alarm')" class="navigation-btn">ALARM</el-button>
-        <el-button :autofocus="mode === 'uph'" @click="modeChange('uph')" class="navigation-btn">UPH</el-button>
+        <el-button @click="modeChange('ct')" class="navigation-btn">CT</el-button>
+        <el-button @click="modeChange('alarm')" class="navigation-btn">ALARM</el-button>
+        <el-button @click="modeChange('uph')" class="navigation-btn">UPH</el-button>
       </div>
       <div>
         <el-button v-if="mode === 'ct' || mode === 'alarm'" @click="visible=true" class="navigation-btn" style="justify-items: end;">Clean all</el-button>
         <div v-else class="flex">
-          <NumKeyBoard v-model="target"
+          <NumKeyBoard v-model="targetCount[activeDay]"
                        width="200" height="60"/>
           <el-button @click="visible=true" class="navigation-btn" style="justify-items: end;">Save</el-button>
         </div>
@@ -38,9 +38,9 @@
           </div>
         </div>
         <div :key="index" v-for="(v, index) in data.filter((_, id) => id < 10)" class="flex table-card-row">
-          <div class="table-card-cell" style="flex: 1">{{ v.day || '' }}</div>
-          <div class="table-card-cell" :style="standardCheck(v[n])" style="flex: 1" :key="n" v-for="n in range(24)">
-            {{ v[n] || '' }}
+          <div @click="handleActiveDay(v.day)" :class="(activeDay === v.day) ? 'active-cell' : null" class="table-card-cell" style="flex: 1; width: 90px;">{{ (v.day || '') + `(${targetCount[v.day]})` }}</div>
+          <div class="table-card-cell" :style="standardCheck(v[n + 1], v.day)" style="flex: 1" :key="n" v-for="n in range(24)">
+            {{ v[n + 1] || '' }}
           </div>
         </div>
       </div>
@@ -96,6 +96,8 @@ export default {
     mode: mode[0],
     page: 0,
     data: utils.getHistory(mode[0]),
+    activeDay: '0',
+    targetCount: utils.getDB('targetCount') || range(32).map(() => 0),
     range,
     moment
   }),
@@ -108,14 +110,14 @@ export default {
       this.mode = mode
       this.data = utils.getHistory(mode)
     },
+    handleActiveDay(day) {
+      this.activeDay = day
+    },
     historyClear() {
       if (this.password !== utils.getDB('config').password) return
 
       if (this.mode === 'uph') {
-        utils.setDB('config', {
-          ...utils.getDB('config'),
-          target: this.target
-        })
+        utils.setDB('targetCount', this.targetCount)
       } else {
         utils.removeHistory(this.mode)
         this.data = []
@@ -123,10 +125,10 @@ export default {
 
       this.visible = false
     },
-    standardCheck(value) {
+    standardCheck(value, day) {
       let color = ''
       if (value) {
-        if (value >= this.target) {
+        if (value >= this.targetCount[day]) {
           color = '#87ff46'
         } else {
           color = '#fd5954'
@@ -177,5 +179,10 @@ button {
   align-items: center;
   color: #606266;
   font-size: 18px;
+}
+
+.active-cell {
+  border: 2px solid black;
+  box-sizing: border-box;
 }
 </style>

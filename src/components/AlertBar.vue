@@ -18,7 +18,7 @@
         computed: {
             alert() {
                 const {connect, mainAir, product, stop, lhdLeft, lhdRight, rhdLeft, rhdRight, airAlarm, detectionSwitch, workComplete, cylinderErrorCheck} = this.$store.state
-                const {isHoleChecking} = this.$store.getters
+                const {isHoleChecking, isToolDetectChecking} = this.$store.getters
                 const switchEnable = utils.getDB('config').UsingSwitch.length === 0
 
                 this.level = 'error'
@@ -57,7 +57,7 @@
                         else return 'workComplete'
                     }
 
-                    if (!workComplete && detectionSwitch.every(v => v)) {
+                    if (!workComplete && detectionSwitch.every(v => v) && isToolDetectChecking) {
                         if (!isHoleChecking && !this.work) {
                             this.level = 'error'
                             return 'isHoleCheck'

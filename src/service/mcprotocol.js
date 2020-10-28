@@ -1,8 +1,9 @@
 import {plcConfig} from '@/config/index2'
 import store from '@/store'
 import utils from '@/utils'
-import {range} from 'lodash'
+import {range, random} from 'lodash'
 import db from '@/utils/database'
+import bus from '@/utils/bus'
 
 const mc = require('mcprotocol')
 const conn = new mc
@@ -12,7 +13,7 @@ const {host, port} = plcConfig()
 const variables = {};
 
 const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRight', 'rhdLeft',
-    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork', 'toolDetectSwitch']
+    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork', 'toolDetectSwitch', 'toolSensor']
 
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
@@ -20,12 +21,35 @@ portList.forEach(port => {
 
 const {isHoleChecking} = store.getters
 
-
 const cylinders = range(17).map(n => 'cylinder' + (n + 1))
 
 range(17).forEach(n => {
     variables['cylinder' + (n + 1)] = 'M' + (134 + n) + ',1'
 })
+
+
+function aaa() {
+    if (store.state.product) {
+        const productList = utils.getDB('productList')
+        const productIndex = productList.indexOf(productList.find(v => v.productName === store.state.product.productName))
+        if ([3, 5].some(n => n === productIndex) && utils.getDB('config').UsingToolSensor === 'Enable') {
+            return store.state.toolDetectSwitch
+        } else {
+            return true
+        }
+    } else {
+        return false
+    }
+}
+
+/*range(1000).forEach(() => {
+    utils.pushHistory('ct', {
+        model: 'adsdd',
+        cycleTime: 30,
+        time: new Date(2020, random(1, 11), random(1, 30), random(1, 24), 30)
+    })
+})*/
+
 
 variables.mode = 'M336,8'
 
@@ -69,6 +93,8 @@ variables.inCompleteReset = 'M371,1'
 
 conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)
 
+let incompleteWork = false
+
 function connected(err) {
     if (!err) store.state.connect = true
 
@@ -83,7 +109,6 @@ function connected(err) {
     let hole = false
     let cycle = false
     let wc = false
-    let incompleteWork = false
     let toolSensorOn = false
 
     const productList = utils.getDB('productList')
@@ -99,41 +124,44 @@ function connected(err) {
                         message: 'incompleteWork',
                         time: new Date()
                     })
+                    incompleteWork = true
                 }
-                incompleteWork = true
             } else {
                 incompleteWork = false
             }
         }
 
+
         if (db.getDB('config').UsingSwitch.length !== 0) {
-            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product && !store.state.incompleteWork) {
+            if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product && !store.state.incompleteWork && !store.state.leftErr &&
+                !store.state.rightErr && !store.state.sideJigError && aaa()) {
 
                 const productIndex = productList.indexOf(productList.find(v => v.productName === store.state.product.productName))
 
                 // 툴 센서
                 if ([3, 5].some(n => n === productIndex)) {
-                    if (store.state.toolSensor && !toolSensorOn && store.state.toolSensorCount <= (db.getDB('config').toolCount * 1 || 5)) {
-                        store.state.toolSensorCount ++
+                    if (store.state.toolSensor && !toolSensorOn && store.state.toolSensorCount < (db.getDB('config').toolCount * 1 || 5)) {
+                        store.state.toolSensorCount++
                         toolSensorOn = true
-                    } else {
-                        if (toolSensorOn) {
-                            toolSensorOn = false
-                        }
                     }
+
+                    if (!store.state.toolSensor && toolSensorOn) {
+                        toolSensorOn = false
+                    }
+
                 }
 
 
-                if (productList.indexOf(productList.find(v => v.productName === store.state.product.productName)) !== 2) {
+                if (productIndex !== 2) {
                     working = true
                     if (!cycle) {
-                        conn.writeItems('cycleRun', true);
+                        writePLC('cycleRun', true);
                         cycle = true
                     }
                 } else if (store.state.inputPort.slice(66, 68).map(v => v.portValue).every(v => !v) || working) {
                     working = true
                     if (!cycle) {
-                        conn.writeItems('cycleRun', true, () => {
+                        writePLC('cycleRun', true, () => {
                             if (hole) {
                                 holeOff()
                                 hole = false
@@ -155,13 +183,12 @@ function connected(err) {
                 }
 
 
-
             } else if (store.state.detectionSwitch.every(v => !v)) {
                 store.state.cycleTime = 0
                 store.state.toolSensorCount = 0
                 if (cycle) {
                     cycle = false
-                    conn.writeItems('cycleRun', false, () => {
+                    writePLC('cycleRun', false, () => {
                         if (hole) {
                             holeOff()
                             hole = false
@@ -191,13 +218,14 @@ function connected(err) {
                             cycleTime: store.state.cycleTime / 10,
                             time: new Date()
                         })
+                        bus.$emit('count', true)
                     }
 
                     wc = true
                 }
 
                 if (cycle) {
-                    conn.writeItems('cycleRun', false);
+                    writePLC('cycleRun', false);
                     cycle = false
                 }
             }
@@ -205,7 +233,7 @@ function connected(err) {
             if (store.state.isStart) {
                 working = true
                 if (!cycle) {
-                    conn.writeItems('cycleRun', true);
+                    writePLC('cycleRun', true);
                     cycle = true
                 }
 
@@ -247,9 +275,8 @@ function valuesReady(anythingBad, values) {
 
     if ((utils.getDB('config').alarmReset) ? (utils.getDB('config').alarmReset === 'Enable') : true) {
         if (!inCompleteWork && values.incompleteWork) {
-            conn.writeItems('inCompleteReset', true, function () {
-                inCompleteWork = true
-            })
+            writePLC('inCompleteReset', true)
+            inCompleteWork = true
         }
 
         if (inCompleteWork && !values.incompleteWork) {
@@ -284,28 +311,33 @@ function valuesReady(anythingBad, values) {
 }
 
 export function cylinderOn(index) {
-    conn.writeItems(cylinders[index], true);
+    writePLC(cylinders[index], true);
 }
 
 export function cylinderOff(index) {
-    conn.writeItems(cylinders[index], false);
+    writePLC(cylinders[index], false);
 }
 
 export function changeMode(index, isHole) {
-    conn.writeItems('selectMode', false, () => {
+    writePLC('selectMode', false)
+    writePLC('mode', range(8).map(n => (n === index)))
+    if (isHole) writePLC('holeMode', true)
+    else writePLC('holeMode', false)
+
+    /*conn.writeItems('selectMode', false, () => {
         conn.writeItems('mode', range(8).map(n => (n === index)), () => {
             if (isHole) conn.writeItems('holeMode', true)
             else conn.writeItems('holeMode', false)
         })
-    });
+    });*/
 }
 
 export function mainAirOn() {
-    conn.writeItems('mainAir', true);
+    writePLC('mainAir', true);
 }
 
 export function mainAirOff() {
-    conn.writeItems('mainAir', false);
+    writePLC('mainAir', false);
 }
 
 export function holeOn() {
@@ -314,68 +346,68 @@ export function holeOn() {
         message: 'isHoleCheck',
         time: new Date()
     })
-    conn.writeItems('hole', true);
+    writePLC('hole', true);
 }
 
 export function holeOff() {
-    conn.writeItems('hole', false);
+    writePLC('hole', false);
 }
 
 export function missMatchOn() {
-    conn.writeItems('missMatch', true);
+    writePLC('missMatch', true);
 }
 
 export function missMatchOff() {
-    conn.writeItems('missMatch', false);
+    writePLC('missMatch', false);
 }
 
 export function manualOn() {
-    conn.writeItems('manual', true);
+    writePLC('manual', true);
 }
 
 export function manualOff() {
-    conn.writeItems('manual', false, () => yellowOff());
+    writePLC('manual', false, () => yellowOff());
 }
 
 export function complete() {
     store.state.isComplete = true
     store.state.isStart = false
-    conn.writeItems('complete', true);
+    writePLC('complete', true);
 }
 
 export function deComplete() {
     store.state.isComplete = false
-    conn.writeItems('complete', false);
+    writePLC('complete', false);
 }
 
 export function reset() {
-    conn.writeItems('reset', true, () => {
-        setTimeout(() => conn.writeItems('reset', false), 500)
-    });
+    writePLC('reset', true);
+    setTimeout(() => writePLC('reset', false), 500)
 }
 
 export function yellowOn() {
-    conn.writeItems('yellow', true);
+    writePLC('yellow', true);
 }
 
 export function yellowOff() {
-    conn.writeItems('yellow', false);
+    writePLC('yellow', false);
 }
 
 export function stopRelease() {
-    conn.writeItems('release', true, () => setTimeout(() => conn.writeItems('release', false), 500));
+    writePLC('release', true);
+    setTimeout(() => writePLC('release', false), 500);
 }
 
 export function selectModeOn() {
-    conn.writeItems('selectMode', true);
+    writePLC('selectMode', true);
 }
 
 export function selectModeOff() {
-    conn.writeItems('selectMode', false);
+    writePLC('selectMode', false);
 }
 
 export function inCompleteReset() {
-    conn.writeItems('inCompleteReset', false)
+    writePLC('inCompleteReset', false)
 }
 
 export function start() {
@@ -384,17 +416,32 @@ export function start() {
     store.state.cycleTime = 0
     store.state.isStart = true
     store.state.workComplete = false
-    conn.writeItems('complete', false, () => {
+    writePLC('complete', false)
+    writePLC('start', true)
+    setTimeout(() => {
+        writePLC('start', false)
+    }, 500)
+
+    /*conn.writeItems('complete', false, () => {
         conn.writeItems('start', true, () => {
             setTimeout(() => {
                 conn.writeItems('start', false)
             }, 500)
         });
-    });
+    });*/
 }
 
 export function writeSetting() {
-    conn.writeItems('alertStopTime', Math.floor(db.getDB('config').alertStopTime * 10), () => {
+    writePLC('alertStopTime', Math.floor(db.getDB('config').alertStopTime * 10))
+    writePLC('cylinderWaitingTime', Math.floor(db.getDB('config').cylinderWaitingTime * 10))
+    writePLC('switchWaitingTime', Math.floor(db.getDB('config').switchWaitingTime * 10))
+    const switchs = db.getDB('config').UsingSwitch
+    const s1 = switchs.find(s => s === 'switch1')
+    const s2 = switchs.find(s => s === 'switch2')
+    writePLC('UsingSwitch', [!s1, !s2])
+    deComplete()
+
+    /*conn.writeItems('alertStopTime', Math.floor(db.getDB('config').alertStopTime * 10), () => {
         conn.writeItems('cylinderWaitingTime', Math.floor(db.getDB('config').cylinderWaitingTime * 10), () => {
             conn.writeItems('switchWaitingTime', Math.floor(db.getDB('config').switchWaitingTime * 10), () => {
                     const switchs = db.getDB('config').UsingSwitch
@@ -405,5 +452,21 @@ export function writeSetting() {
                 }
             )
         })
-    })
+    })*/
 }
+
+const writeStream = []
+
+let streaming = false
+
+function writePLC(name, value) {
+    writeStream.push({ name, value })
+}
+
+setInterval(() => {
+    if (writeStream.length > 0 && !streaming) {
+        const { name, value } = writeStream.shift()
+        streaming = true
+        conn.writeItems(name, value, () => streaming = false)
+    }
+}, 100)

@@ -59,7 +59,7 @@ export const plcConfig = () => {
         sideJigError: ['M1500', 1],
         incompleteWork: ['M1600', 1],
         nokAndOk: ['D2000', 2],
-        toolSensor: ['M260', 1],
-        toolDetectSwitch: ['M270', 1]
+        toolSensor: ['M511', 1],
+        toolDetectSwitch: ['M450', 1]
     }
 }

@@ -114,6 +114,7 @@ export default {
     },
     inCompleteAlarmReset() {
       if ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword === this.password : '2020' === this.password ) {
+        this.password = ''
         inCompleteReset()
       }
     }
@@ -247,7 +248,7 @@ export default {
 
 .big-button {
   width: 150px !important;
-  height: 60px !important;
+  height: 50px !important;
   font-size: 25px !important;
   text-align: center !important;
 
@@ -304,14 +305,14 @@ export default {
 
 
 .el-checkbox-button__inner {
-  width: 160px;
-  height: 60px;
+  width: 150px;
+  height: 50px;
   font-size: 25px !important;
 }
 
 .el-radio-button__inner {
-  width: 160px;
-  height: 60px;
+  width: 150px;
+  height: 50px;
   font-size: 25px !important;
 }
 </style>

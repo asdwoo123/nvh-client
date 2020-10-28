@@ -28,6 +28,9 @@
           <el-button @click="totalReset" style="border-radius: 0; font-size: 20px;" type="info" plain>Reset
           </el-button>
           <!--<el-button :type="(green) ? 'success' : 'info'" style="width: 60px; height: 60px;" circle/>-->
+          <div class="flex center-h" style="padding: 15px 15px 15px 30px; font-size: 25px; font-weight: 400;">
+            {{ `${currentCount}/` + targetCount[(new Date()).getDate()] }}
+          </div>
         </div>
 
       </div>
@@ -73,7 +76,7 @@
 
     </div>
     <div class="productView">
-      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer;" @drag="handleDrag4"
+      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; text-align: center;" @drag="handleDrag4"
                 :style="{ top: sideJigSensor.top + 'px', left: sideJigSensor.left + 'px' }">
         <div :class="(sideJigError) ? 'led-err' : null"
              style="
@@ -81,14 +84,19 @@
         width: 50px;
         height: 50px;
         border-radius: 50%;"/>
+        <p style="margin-top: 5px;">side jig</p>
       </Moveable>
-      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; z-index: 3;" @drag="handleDrag7"
-      :style="{ top: jigCheckSensor[0].top + 'px', left: jigCheckSensor[0].left + 'px' }">
-        <div :class="(leftError) ? 'led-err' : null" class="jig-led" />
+      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; text-align: center; z-index: 3;"
+                @drag="handleDrag7"
+                :style="{ top: jigCheckSensor[0].top + 'px', left: jigCheckSensor[0].left + 'px' }">
+        <div :class="(leftError) ? 'led-err' : null" class="jig-led"/>
+        <p style="margin-top: 5px;">left jig</p>
       </Moveable>
-      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; z-index: 3;" @drag="handleDrag8"
-      :style="{ top: jigCheckSensor[1].top + 'px', left: (jigCheckSensor[1].left || 300) + 'px' }">
-        <div :class="(rightError) ? 'led-err' : null" class="jig-led" />
+      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; z-index: 3; text-align: center;"
+                @drag="handleDrag8"
+                :style="{ top: jigCheckSensor[1].top + 'px', left: (jigCheckSensor[1].left || 300) + 'px' }">
+        <div :class="(rightError) ? 'led-err' : null" class="jig-led"/>
+        <p style="margin-top: 5px;">right jig</p>
       </Moveable>
       <template v-if="lamps">
         <Moveable v-bind="moveable" @drag="handleDrag" v-bind:key="index"
@@ -123,7 +131,8 @@
           <el-button style="width: 50px;
             height: 50px; font-size: 25px; display: flex; justify-content: center;"
                      :type="(toolDetectSwitch) ? 'success' : 'danger'"
-          >3</el-button>
+          >3
+          </el-button>
         </Moveable>
 
         <Moveable v-bind="moveable" @drag="handleDrag3"
@@ -131,8 +140,12 @@
                   style="z-index: 2; position: absolute; cursor: pointer;"
                   :style="{ top: toolSensor[0].top + 'px', left: toolSensor[0].left + 'px' }"
         >
-          <el-progress width="60" stroke-width="10" type="circle" :status="(toolSensorCheck === toolCount  * 1) ? 'success' : null"
-                       :percentage="toolSensorCheck * Math.floor(100 / toolCount)"/>
+          <!--          <el-progress width="60" stroke-width="10" type="circle" :status="(toolSensorCheck === toolCount  * 1) ? 'success' : null"
+                                 :percentage="toolSensorCheck * Math.floor(100 / toolCount)"/>-->
+          <div style="width: 60px; height: 60px; background-color: #fff; border: 2px solid black; border-radius: 5px;
+          display: flex; justify-content: center; align-items: center; font-size: 20px;">
+            {{ toolSensorCheck + '/' + toolCount }}
+          </div>
         </Moveable>
 
       </template>
@@ -235,7 +248,8 @@ import {
   selectModeOff,
   start
 } from '@/service/mcprotocol'
-import {cloneDeep} from 'lodash'
+import {cloneDeep, range} from 'lodash'
+import bus from '@/utils/bus'
 
 
 export default {
@@ -261,7 +275,9 @@ export default {
     toolSwitchPosition: cloneDeep(utils.getDB('toolDetectSwitch')),
     toolUsingIndex: [3, 5],
     UsingToolSensor: utils.getDB('config').UsingToolSensor || 'Disable',
-    toolCount: utils.getDB('config').toolCount || '5'
+    toolCount: utils.getDB('config').toolCount || '5',
+    targetCount: utils.getDB('targetCount') || range(32).map(() => 0),
+    currentCount: 0
   }),
   components: {
     NumKeyBoard,
@@ -269,6 +285,11 @@ export default {
   },
   mounted() {
     let visibleState = false
+    this.currentCount = this.getCurrentCount()
+
+    bus.$on('count', () => {
+      this.currentCount = this.getCurrentCount()
+    })
 
     setInterval(() => {
       if (!this.visible && this.selectState) {
@@ -286,8 +307,20 @@ export default {
         arr.push(this.getLampCheck()[index])
       })
 
-      if (!visibleState && arr.every(v => v) && arr.length > 0 && this.$store.state.detectionSwitch.every(v => v) && !this.$store.state.workComplete /*&&
-      (productList.indexOf(productList.find(v => v.productName === this.$store.state.product.productName)) === 1) ? this.$store.state.toolSensorCount === 4 : true*/) {
+      if (!visibleState && arr.every(v => v) && arr.length > 0 && this.$store.state.detectionSwitch.every(v => v) && !this.$store.state.workComplete
+          && !this.$store.state.incompleteWork) {
+        const productIndex = this.productList.indexOf(this.productList.find(v => v.productName === this.$store.state.product.productName))
+
+        if ([3, 5].some(n => n === productIndex)) {
+          if (this.UsingToolSensor === 'Enable') {
+            if (this.toolCount * 1 !== this.$store.state.toolSensorCount) {
+              return
+            }
+          }
+        } else if (productIndex === 2) {
+          if (!this.$store.getters.isHoleChecking) return
+        }
+
         visibleState = true
         this.$store.state.workComplete = true
         complete()
@@ -370,6 +403,11 @@ export default {
     }
   },
   methods: {
+    getCurrentCount() {
+      return utils.getDB('ct').filter(v => {
+        return (new Date(v.time).getDate() === new Date().getDate() && new Date(v.time).getHours() === new Date().getHours())
+      }).length
+    },
     positionSave() {
       if (this.password === utils.getDB('config').password) {
         const productName = this.product.productName
@@ -498,7 +536,7 @@ export default {
     },
     toggleDisable(index) {
       if (this.lampDisable) {
-        if (index > 11) index ++
+        if (index > 11) index++
         const lamp = this.product.lamps[index]
         lamp.disable = !lamp.disable;
 
@@ -527,7 +565,7 @@ export default {
           if (index === 14 && this.primaryWork[2] === 1) return 'lamp-blue'
           if (index === 16 && this.primaryWork[3] === 1) return 'lamp-blue'
         }
-                return 'lamp-blink'
+        return 'lamp-blink'
       }
     },
     totalReset() {
@@ -692,6 +730,7 @@ export default {
   height: 50px !important;
   font-size: 25px !important;
 }
+
 
 @-webkit-keyframes blinkRed {
   from {

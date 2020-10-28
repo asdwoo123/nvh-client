@@ -1,6 +1,6 @@
 import low from 'lowdb'
 import LocalStorage from 'lowdb/adapters/LocalStorage'
-import {range, clone, groupBy} from 'lodash'
+import {range, clone, groupBy, cloneDeep} from 'lodash'
 import moment from "moment";
 
 const adapter = new LocalStorage('db')
@@ -152,12 +152,14 @@ const toolDetectSwitch = {
 }
 
 const toolSensor = range(2).map(() =>
-        (
-            {
-                top: 50,
-                left: 50
-            })
-        )
+    (
+        {
+            top: 50,
+            left: 50
+        })
+)
+
+const targetCount = range(32).map(() => 0)
 
 db.defaults({
     productConfig,
@@ -170,7 +172,8 @@ db.defaults({
     holeSensor,
     sideJigSensor,
     jigCheckSensor,
-    toolDetectSwitch
+    toolDetectSwitch,
+    targetCount
 }).write()
 
 /*if (!db.get('productList').value()[0].detectionSwitches) {
@@ -241,8 +244,12 @@ export default {
     },
     getHistory(name) {
         if (name === 'uph') {
-
-            let result = db.get('ct').value().filter(v => v.time && Date.parse(v.time))/*.filter(v => {
+            let result = cloneDeep(db.get('ct').value()).filter(v => v.time && Date.parse(v.time)).map(v => {
+                const date = new Date(v.time)
+                date.setHours(date.getHours() - 1)
+                v.time = date
+                return v
+            })/*.filter(v => {
                 const time = v.time
 
                 if (!Date.parse(time)) return false
@@ -277,6 +284,6 @@ export default {
         }
     },
     getHistoryPage(name, page) {
-        return db.get(name).slice(page * 5 + 20, page * 5 + 25).value()
+        return cloneDeep(db.get(name).slice(page * 5 + 20, page * 5 + 25).value())
     }
 }

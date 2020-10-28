@@ -116,6 +116,14 @@
           </el-button>
         </div>
       </div>
+      <div class="flex between center-v configList">
+        <span style="font-size: 25px;">{{ $t('ctData') }}</span>
+        <div>
+          <el-button @click="exportCTData" class="big-button" style="margin-left: 20px;" type="info" plain>{{
+              $t('Export') }}
+          </el-button>
+        </div>
+      </div>
 
       <div class="flex between center-v" style="padding: 10px;">
         <span style="font-size: 25px;">{{ $t('changePassword') }}</span>
@@ -307,6 +315,12 @@ export default {
       const productConfig = utils.getDB('productConfig')
       const buffer = utils.encodeXLSX(productConfig, 'myProductConfig')
       const path = await utils.showSaveDialog('/productConfig.xlsx')
+      fs.writeFileSync(path, buffer)
+    },
+    async exportCTData() {
+      const ctData = utils.getDB('ct')
+      const buffer = utils.encodeXLSX(ctData, 'myCTData')
+      const path = await utils.showSaveDialog('/ctData.xlsx')
       fs.writeFileSync(path, buffer)
     },
     reset() {

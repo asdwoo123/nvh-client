@@ -9,7 +9,10 @@
       <div>
         <el-button v-if="mode === 'ct' || mode === 'alarm'" @click="visible=true" class="navigation-btn" style="justify-items: end;">Clean all</el-button>
         <div v-else class="flex">
-          <NumKeyBoard v-model="targetCount[activeDay]"
+          <p style="margin-right: 20px; font-size: 20px;">
+            {{ moment().date() }} day hourly target quantity
+          </p>
+          <NumKeyBoard v-model="currentTarget"
                        width="200" height="60"/>
           <el-button @click="visible=true" class="navigation-btn" style="justify-items: end;">Save</el-button>
         </div>
@@ -32,13 +35,13 @@
     <div v-if="mode === 'uph'">
       <div class="table-card">
         <div class="flex table-card-row">
-          <div class="table-card-cell" style="flex: 1; background-color: #f5f7fa; color: #909399; font-weight: 500;">Day</div>
+          <div class="table-card-cell" style="flex: 1.5; background-color: #f5f7fa; color: #909399; font-weight: 500;">Day</div>
           <div class="table-card-cell" style="flex: 1; background-color: #f5f7fa; color: #909399; font-weight: 500;" :key="n" v-for="n in range(24)">
             {{ n + 1 }}
           </div>
         </div>
-        <div :key="index" v-for="(v, index) in data.filter((_, id) => id < 10)" class="flex table-card-row">
-          <div @click="handleActiveDay(v.day)" :class="(activeDay === v.day) ? 'active-cell' : null" class="table-card-cell" style="flex: 1; width: 90px;">{{ (v.day || '') + `(${targetCount[v.day]})` }}</div>
+        <div :key="index" v-for="(v, index) in data" class="flex table-card-row">
+          <div :class="(activeDay === v.day) ? 'active-cell' : null" class="table-card-cell" style="flex: 1.5; width: 120px;">{{ (v.day.substring(5) || '') + `(${targetCount[v.day] || 0})` }}</div>
           <div class="table-card-cell" :style="standardCheck(v[n + 1], v.day)" style="flex: 1" :key="n" v-for="n in range(24)">
             {{ v[n + 1] || '' }}
           </div>
@@ -97,7 +100,8 @@ export default {
     page: 0,
     data: utils.getHistory(mode[0]),
     activeDay: '0',
-    targetCount: utils.getDB('targetCount') || range(32).map(() => 0),
+    targetCount: utils.getDB('targetCount') || {},
+    currentTarget: utils.getDB('targetCount')[moment().format('YYYY-MM-DD')] || '0',
     range,
     moment
   }),
@@ -117,6 +121,8 @@ export default {
       if (this.password !== utils.getDB('config').password) return
 
       if (this.mode === 'uph') {
+        this.$store.state.isTargetCount = this.currentTarget !== '0';
+        this.targetCount[moment().format('YYYY-MM-DD')] = this.currentTarget
         utils.setDB('targetCount', this.targetCount)
       } else {
         utils.removeHistory(this.mode)

@@ -17,7 +17,7 @@
         }),
         computed: {
             alert() {
-                const {connect, mainAir, product, stop, lhdLeft, lhdRight, rhdLeft, rhdRight, airAlarm, detectionSwitch, workComplete, cylinderErrorCheck} = this.$store.state
+                const {connect, mainAir, product, stop, lhdLeft, lhdRight, rhdLeft, rhdRight, airAlarm, detectionSwitch, workComplete, cylinderErrorCheck, isTargetCount} = this.$store.state
                 const {isHoleChecking, isToolDetectChecking} = this.$store.getters
                 const switchEnable = utils.getDB('config').UsingSwitch.length === 0
 
@@ -36,6 +36,10 @@
                     } else if (type === 'RHD') {
                         if (!rhdLeft) return 'leftNotRHD'
                         if (!rhdRight) return 'rightNotRHD'
+                    }
+
+                    if (!isTargetCount) {
+                      return 'targetNotSet'
                     }
 
 

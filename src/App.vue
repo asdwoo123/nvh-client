@@ -10,7 +10,7 @@
       </div>
       <div v-if="product" class="product-title">
                 <span>
-                {{product.productName}}
+                {{ productName }}
                 </span>
       </div>
       <div class="flex center" style="margin: 10px 0;">
@@ -21,7 +21,7 @@
     <div class="content">
       <router-view/>
     </div>
-    <AlertBar />
+    <AlertBar/>
     <el-dialog :title="$t('emergencyStop')" :visible.sync="visible"
                width="700px" :close-on-click-modal="false" :show-close="false">
       <div class="flex center" style="height: 300px;">
@@ -35,7 +35,7 @@
                width="700px" :close-on-click-modal="false" :show-close="false">
       <div class="flex center" style="height: 300px;">
         <div class="flex">
-          <NumKeyBoard v-model="password" type="password" width="350" height="60" />
+          <NumKeyBoard v-model="password" type="password" width="350" height="60"/>
           <el-button type="info" style="width: 150px; height: 60px; font-size: 25px;" @click="inCompleteAlarmReset">
             {{ $t('reset') }}
           </el-button>
@@ -62,6 +62,8 @@ const {app} = remote;
 
 const productList = utils.getDB('productList')
 
+utils.getHistory('uph')
+
 export default {
   name: 'app',
   components: {AlertBar, NumKeyBoard},
@@ -70,7 +72,8 @@ export default {
     activeIndex: '/auto',
     currentTime: moment().format('L LT'),
     routes: routes().slice(1),
-    password: ''
+    password: '',
+    productNames: Object.values(utils.getDB('productConfig').productNames) || []
   }),
   computed: {
     product() {
@@ -86,6 +89,14 @@ export default {
       } else {
         return false
       }*/
+    },
+    productName() {
+      const productIndex = productList.indexOf(productList.find(v => v.productName === this.product.productName))
+      if (this.productNames.length > productIndex) {
+        return this.productNames[productIndex]
+      } else {
+        return ''
+      }
     }
   },
   methods: {
@@ -113,7 +124,7 @@ export default {
       stopRelease()
     },
     inCompleteAlarmReset() {
-      if ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword === this.password : '2020' === this.password ) {
+      if ((utils.getDB('config').alarmResetPassword) ? utils.getDB('config').alarmResetPassword === this.password : '2020' === this.password) {
         this.password = ''
         inCompleteReset()
       }
@@ -171,7 +182,6 @@ export default {
     font-size: 25px !important;
     height: 70px !important;
     padding: 0 13px;
-
 
 
     @media screen and (max-width: 800px) {
@@ -301,7 +311,6 @@ export default {
     margin-bottom: 8px;
   }
 }
-
 
 
 .el-checkbox-button__inner {

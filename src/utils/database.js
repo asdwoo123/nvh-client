@@ -24,6 +24,9 @@ const RHD = ['NX4e RHD HEV - 84260CZ900', 'NX4e RHD PHEV - 84260CZ920', 'NX4e RH
 
 const productList = LHD.concat(RHD)
 
+
+
+
 const message = {
     ko: {
         automation: '자동',
@@ -159,7 +162,7 @@ const toolSensor = range(2).map(() =>
         })
 )
 
-const targetCount = range(32).map(() => 0)
+const targetCount = {}
 
 db.defaults({
     productConfig,
@@ -175,6 +178,32 @@ db.defaults({
     toolDetectSwitch,
     targetCount
 }).write()
+
+if (Array.isArray(db.get('targetCount').value()) || !db.get('targetCount').value()) {
+    db.set('targetCount', {}).write()
+}
+
+/*let pl = cloneDeep(db.get('productList').value())
+if (pl.length === 8) {
+    pl.push({
+        productName: 'NX4e RHD DCU - 84260N7950',
+        type: 'LHD',
+        lamps: range(20).map(n => ({number: n + 1, left: 0, top: 0, visible: true})),
+        detectionSwitches: range(2).map(n => ({number: n + 1, left: 0, top: 0}))
+    })
+
+    db.set('productList', pl).write()
+}*/
+
+/*if (pl.length === 9 && pl[8].type === 'LHD') {
+    pl[8].type = 'RHD'
+
+    db.set('productList', pl).write()
+}*/
+
+/*db.set('productList', productList).write()*/
+
+
 
 /*if (!db.get('productList').value()[0].detectionSwitches) {
     const pl = db.get('productList').value()
@@ -247,7 +276,6 @@ export default {
             let result = cloneDeep(db.get('ct').value()).filter(v => v.time && Date.parse(v.time)).map(v => {
                 const date = new Date(v.time)
                 date.setHours(date.getHours() - 1)
-                v.time = date
                 return v
             })/*.filter(v => {
                 const time = v.time
@@ -257,9 +285,8 @@ export default {
                 return moment(moment().add(1, 'd').format('YYYY-MM-DD')).toDate().getTime() > moment(time).toDate().getTime() &&
                     moment(moment().format('YYYY-MM-DD')).subtract(9, 'd').toDate().getTime() < moment(time).toDate().getTime()
             })*/
-
             result = groupBy(result, function (v) {
-                return moment(v.time).date()
+                return moment(v.time).format('YYYY-MM-DD')
             })
 
             for (const [key, value] of Object.entries(clone(result))) {
@@ -274,7 +301,19 @@ export default {
                 result[key] = res
             }
 
-            return Object.entries(result).slice(-10).map(v => {
+            const arr = Object.entries(result).sort((a, b) => {
+                const dateA = new Date(a[0]).getTime();
+                const dateB = new Date(b[0]).getTime();
+                return dateA > dateB ? 1 : -1;
+            })
+
+            if (!arr.some(v => moment().format('YYYY-MM-DD') === moment(v[0]).format('YYYY-MM-DD')) ) {
+                arr.push([moment().format('YYYY-MM-DD'), {}])
+            }
+
+
+
+            return arr.slice(-10).map(v => {
                 v[1].day = v[0]
                 return v[1]
             })

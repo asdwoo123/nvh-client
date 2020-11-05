@@ -4,6 +4,7 @@ import utils from '@/utils'
 import {range, random} from 'lodash'
 import db from '@/utils/database'
 import bus from '@/utils/bus'
+import moment from "moment";
 
 const mc = require('mcprotocol')
 const conn = new mc
@@ -46,9 +47,17 @@ function aaa() {
     utils.pushHistory('ct', {
         model: 'adsdd',
         cycleTime: 30,
-        time: new Date(2020, random(1, 11), random(1, 30), random(1, 24), 30)
+        time: new Date(2020, random(1, 10), random(1, 27), random(1, 24), 30)
     })
 })*/
+
+/*
+utils.pushHistory('ct', {
+    model: 'adsdd',
+    cycleTime: 30,
+    time: moment()
+})
+*/
 
 
 variables.mode = 'M336,8'
@@ -134,7 +143,7 @@ function connected(err) {
 
         if (db.getDB('config').UsingSwitch.length !== 0) {
             if (store.state.detectionSwitch.every(v => v) && !store.state.isComplete && store.state.product && !store.state.incompleteWork && !store.state.leftErr &&
-                !store.state.rightErr && !store.state.sideJigError && aaa()) {
+                !store.state.rightErr && !store.state.sideJigError && aaa() && store.state.isTargetCount) {
 
                 const productIndex = productList.indexOf(productList.find(v => v.productName === store.state.product.productName))
 
@@ -181,7 +190,6 @@ function connected(err) {
                         hole = true
                     }
                 }
-
 
             } else if (store.state.detectionSwitch.every(v => !v)) {
                 store.state.cycleTime = 0
@@ -280,6 +288,7 @@ function valuesReady(anythingBad, values) {
         }
 
         if (inCompleteWork && !values.incompleteWork) {
+            writePLC('inCompleteReset', false)
             inCompleteWork = false
         }
     }

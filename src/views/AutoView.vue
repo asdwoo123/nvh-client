@@ -25,12 +25,18 @@
               <span style="font-weight: bold; font-size: 25px;">{{ total }}</span> {{ $t('count') }}
             </div>
           </div>
-          <el-button @click="totalReset" style="border-radius: 0; font-size: 20px;" type="info" plain>Reset
+          <el-button @click="totalReset" style="border-radius: 0; font-size: 20px; height: 60px;" type="info" plain>Reset
           </el-button>
           <!--<el-button :type="(green) ? 'success' : 'info'" style="width: 60px; height: 60px;" circle/>-->
-          <div class="flex center-h" style="padding: 15px 15px 15px 30px; font-size: 25px; font-weight: 400;">
-            {{ `${currentCount}/` + targetCount[(new Date()).getDate()] }}
+          <div style="border: 1px solid #d2d2d2; margin-left: 80px;">
+            <div style="border-bottom: 1px solid #d2d2d2; background-color: #f4f4f5; padding: 10px;">
+              {{ $t('currentProduction') + '/' + $t('targetProduction') }}
+            </div>
+            <div class="flex center-h" style="padding: 15px; font-size: 25px; font-weight: 400; background-color: #fff;">
+              {{ `${currentCount}/` + targetCount }}
+            </div>
           </div>
+
         </div>
 
       </div>
@@ -76,7 +82,8 @@
 
     </div>
     <div class="productView">
-      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; text-align: center;" @drag="handleDrag4"
+      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; text-align: center;"
+                @drag="handleDrag4"
                 :style="{ top: sideJigSensor.top + 'px', left: sideJigSensor.left + 'px' }">
         <div :class="(sideJigError) ? 'led-err' : null"
              style="
@@ -86,13 +93,15 @@
         border-radius: 50%;"/>
         <p style="margin-top: 5px;">side jig</p>
       </Moveable>
-      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; text-align: center; z-index: 3;"
+      <Moveable v-bind="moveable" v-if="product"
+                style="position: absolute; cursor: pointer; text-align: center; z-index: 3;"
                 @drag="handleDrag7"
                 :style="{ top: jigCheckSensor[0].top + 'px', left: jigCheckSensor[0].left + 'px' }">
         <div :class="(leftError) ? 'led-err' : null" class="jig-led"/>
         <p style="margin-top: 5px;">left jig</p>
       </Moveable>
-      <Moveable v-bind="moveable" v-if="product" style="position: absolute; cursor: pointer; z-index: 3; text-align: center;"
+      <Moveable v-bind="moveable" v-if="product"
+                style="position: absolute; cursor: pointer; z-index: 3; text-align: center;"
                 @drag="handleDrag8"
                 :style="{ top: jigCheckSensor[1].top + 'px', left: (jigCheckSensor[1].left || 300) + 'px' }">
         <div :class="(rightError) ? 'led-err' : null" class="jig-led"/>
@@ -101,7 +110,8 @@
       <template v-if="lamps">
         <Moveable v-bind="moveable" @drag="handleDrag" v-bind:key="index"
                   style="z-index: 1; position: absolute; cursor: pointer; "
-                  v-for="(lamp, index) in lamps.filter((_, i) => i !== 12)"
+                  v-if="index !== 12"
+                  v-for="(lamp, index) in lamps"
                   v-bind:style="{ top: lamp.top + 'px', left: lamp.left + 'px' }">
           <el-button circle v-if="lampDisableCheck(lamp)" :type="lampTypeCheck(lampCheck[index], lamp)"
                      style="width: 50px;
@@ -250,6 +260,7 @@ import {
 } from '@/service/mcprotocol'
 import {cloneDeep, range} from 'lodash'
 import bus from '@/utils/bus'
+import moment from "moment";
 
 
 export default {
@@ -276,7 +287,7 @@ export default {
     toolUsingIndex: [3, 5],
     UsingToolSensor: utils.getDB('config').UsingToolSensor || 'Disable',
     toolCount: utils.getDB('config').toolCount || '5',
-    targetCount: utils.getDB('targetCount') || range(32).map(() => 0),
+    targetCount: utils.getDB('targetCount')[moment().format('YYYY-MM-DD')] || '0',
     currentCount: 0
   }),
   components: {
@@ -286,6 +297,10 @@ export default {
   mounted() {
     let visibleState = false
     this.currentCount = this.getCurrentCount()
+
+    if (this.targetCount !== '0') {
+      this.$store.state.isTargetCount = true
+    }
 
     bus.$on('count', () => {
       this.currentCount = this.getCurrentCount()
@@ -405,7 +420,7 @@ export default {
   methods: {
     getCurrentCount() {
       return utils.getDB('ct').filter(v => {
-        return (new Date(v.time).getDate() === new Date().getDate() && new Date(v.time).getHours() === new Date().getHours())
+        return moment().format('YYYY-MM-DD-HH') === moment(v.time).format('YYYY-MM-DD-HH')
       }).length
     },
     positionSave() {
@@ -419,6 +434,15 @@ export default {
           }
           return product
         })
+
+        if (this.productList.length === 8) {
+          this.productList.splice(2, {
+            productName: 'NX4e LHD NON DCU (FIRE) - 84260N7050',
+            type: 'LHD',
+            lamps: range(22).map(n => ({number: n + 1, left: 0, top: 0, visible: true})),
+            detectionSwitches: range(2).map(n => ({number: n + 1, left: 0, top: 0}))
+          })
+        }
 
         utils.setDB('productList', this.productList)
         utils.setDB('toolSensor', this.toolSensor)
@@ -457,9 +481,6 @@ export default {
       let id = target.children[1].id
       id = id.substr(1)
       id = parseInt(id)
-      if (id > 11) {
-        id++
-      }
       const lamp = this.product.lamps[id]
       lamp.left = left
       lamp.top = top

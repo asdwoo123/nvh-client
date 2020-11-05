@@ -70,7 +70,6 @@ export default {
   router,
   data: () => ({
     activeIndex: '/auto',
-    currentTime: moment().format('L LT'),
     routes: routes().slice(1),
     password: '',
     productNames: Object.values(utils.getDB('productConfig').productNames) || []
@@ -89,6 +88,9 @@ export default {
       } else {
         return false
       }*/
+    },
+    currentTime() {
+      return moment(this.$store.clock).format('L LT')
     },
     productName() {
       const productIndex = productList.indexOf(productList.find(v => v.productName === this.product.productName))
@@ -137,7 +139,6 @@ export default {
     fs.writeFileSync(path.join(app.getAppPath(), 'ct.json'), JSON.stringify({ct}), 'utf8')
 
     setInterval(() => {
-      this.currentTime = moment().format('L LT')
       if (this.$store.state.stop) {
         this.visible = true
       }

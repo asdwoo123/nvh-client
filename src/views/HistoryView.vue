@@ -10,7 +10,7 @@
         <el-button v-if="mode === 'ct' || mode === 'alarm'" @click="visible=true" class="navigation-btn" style="justify-items: end;">Clean all</el-button>
         <div v-else class="flex">
           <p style="margin-right: 20px; font-size: 20px;">
-            {{ moment().date() }} day hourly target quantity
+            {{ today }} day hourly target quantity
           </p>
           <NumKeyBoard v-model="currentTarget"
                        width="200" height="60"/>
@@ -105,6 +105,11 @@ export default {
     range,
     moment
   }),
+  computed: {
+    today() {
+      moment(this.$store.state.clock).date()
+    }
+  },
   methods: {
     load() {
       this.data.push(...utils.getHistoryPage(this.mode, this.page))

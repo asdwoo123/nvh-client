@@ -61,6 +61,6 @@ export const plcConfig = () => {
         nokAndOk: ['D2000', 2],
         toolSensor: ['M511', 1],
         toolDetectSwitch: ['M450', 1],
-        clock: ['D500', 5]
+        clock: ['D500', 6]
     }
 }

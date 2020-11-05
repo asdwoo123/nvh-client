@@ -120,6 +120,7 @@ function connected(err) {
     let cycle = false
     let wc = false
     let toolSensorOn = false
+    let tc = false
 
     const productList = utils.getDB('productList')
 
@@ -132,7 +133,7 @@ function connected(err) {
                     utils.pushHistory('alarm', {
                         model: store.state.product.productName,
                         message: 'incompleteWork',
-                        time: new Date()
+                        time: store.state.clock
                     })
                     incompleteWork = true
                 }
@@ -152,8 +153,9 @@ function connected(err) {
                 if ([3, 5].some(n => n === productIndex)) {
                     if (store.state.toolSensor && !toolSensorOn && store.state.toolSensorCount < (db.getDB('config').toolCount * 1 || 5)) {
                         store.state.toolSensorCount++
-                        if (store.state.toolSensorCount === (db.getDB('config').toolCount * 1 || 5)) {
+                        if (!tc && store.state.toolSensorCount === (db.getDB('config').toolCount * 1 || 5)) {
                             writePLC('fullCount', true)
+                            tc = true
                         }
                         toolSensorOn = true
                     }
@@ -198,7 +200,11 @@ function connected(err) {
             } else if (store.state.detectionSwitch.every(v => !v)) {
                 store.state.cycleTime = 0
                 store.state.toolSensorCount = 0
-                writePLC('fullCount', false)
+                if (tc) {
+                    writePLC('fullCount', false)
+                    tc = false
+                }
+
                 if (cycle) {
                     cycle = false
                     writePLC('cycleRun', false, () => {
@@ -229,7 +235,7 @@ function connected(err) {
                         utils.pushHistory('ct', {
                             model: store.state.product.productName,
                             cycleTime: store.state.cycleTime / 10,
-                            time: new Date()
+                            time: store.state.clock
                         })
                         bus.$emit('count', true)
                     }
@@ -285,7 +291,8 @@ function valuesReady(anythingBad, values) {
     store.state.total = values.total
     store.state.primaryWork = values.primaryWork
     store.state.nokAndOk = values.nokAndOk
-    store.state.clock = values.clock
+    const [year, mon, day, date, min, sec] = values.clock
+    store.state.clock = new Date(`${year}/${mon}/${day}/${date}:${min}:${sec}`)
 
     if ((utils.getDB('config').alarmReset) ? (utils.getDB('config').alarmReset === 'Enable') : true) {
         if (!inCompleteWork && values.incompleteWork) {
@@ -360,7 +367,7 @@ export function holeOn() {
     utils.pushHistory('alarm', {
         model: store.state.product.productName,
         message: 'isHoleCheck',
-        time: new Date()
+        time: store.state.clock
     })
     writePLC('hole', true);
 }

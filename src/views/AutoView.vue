@@ -287,8 +287,8 @@ export default {
     toolUsingIndex: [3, 5],
     UsingToolSensor: utils.getDB('config').UsingToolSensor || 'Disable',
     toolCount: utils.getDB('config').toolCount || '5',
-    targetCount: utils.getDB('targetCount')[moment().format('YYYY-MM-DD')] || '0',
-    currentCount: 0
+    currentCount: 0,
+    tc: utils.getDB('targetCount')
   }),
   components: {
     NumKeyBoard,
@@ -415,12 +415,15 @@ export default {
     },
     toolDetectSwitch() {
       return this.$store.state.toolDetectSwitch
+    },
+    targetCount() {
+      return this.tc[moment(this.$store.state.clock).format('YYYY-MM-DD')] || '0'
     }
   },
   methods: {
     getCurrentCount() {
       return utils.getDB('ct').filter(v => {
-        return moment().format('YYYY-MM-DD-HH') === moment(v.time).format('YYYY-MM-DD-HH')
+        return moment(this.$store.state.clock).format('YYYY-MM-DD-HH') === moment(v.time).format('YYYY-MM-DD-HH')
       }).length
     },
     positionSave() {

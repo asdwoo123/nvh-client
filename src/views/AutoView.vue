@@ -344,7 +344,7 @@ export default {
         this.$store.state.workComplete = false
         deComplete()
       }
-    }, 1500)
+    }, 500)
   },
   computed: {
     product() {

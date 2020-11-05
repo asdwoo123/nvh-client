@@ -1,10 +1,9 @@
 import {plcConfig} from '@/config/index2'
 import store from '@/store'
 import utils from '@/utils'
-import {range, random} from 'lodash'
+import {range} from 'lodash'
 import db from '@/utils/database'
 import bus from '@/utils/bus'
-import moment from "moment";
 
 const mc = require('mcprotocol')
 const conn = new mc
@@ -14,7 +13,7 @@ const {host, port} = plcConfig()
 const variables = {};
 
 const portList = ['inputPort', 'outputPort', 'switchAndStop', 'lhdLeft', 'lhdRight', 'rhdLeft',
-    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork', 'toolDetectSwitch', 'toolSensor']
+    'rhdRight', 'mainAir', 'cylinderError', 'total', 'primaryWork', 'nokAndOk', 'switchOneOn', 'cylinderErrorCheck', 'sideJigError', 'incompleteWork', 'toolDetectSwitch', 'toolSensor', 'clock']
 
 portList.forEach(port => {
     variables[port] = plcConfig()[port][0] + ',' + plcConfig()[port][1]
@@ -100,6 +99,8 @@ variables.holeMode = 'M3360,1'
 
 variables.inCompleteReset = 'M371,1'
 
+variables.fullCount = 'M520,1'
+
 conn.initiateConnection({port, host: host.join('.'), ascii: false}, connected)
 
 let incompleteWork = false
@@ -151,6 +152,9 @@ function connected(err) {
                 if ([3, 5].some(n => n === productIndex)) {
                     if (store.state.toolSensor && !toolSensorOn && store.state.toolSensorCount < (db.getDB('config').toolCount * 1 || 5)) {
                         store.state.toolSensorCount++
+                        if (store.state.toolSensorCount === (db.getDB('config').toolCount * 1 || 5)) {
+                            writePLC('fullCount', true)
+                        }
                         toolSensorOn = true
                     }
 
@@ -194,6 +198,7 @@ function connected(err) {
             } else if (store.state.detectionSwitch.every(v => !v)) {
                 store.state.cycleTime = 0
                 store.state.toolSensorCount = 0
+                writePLC('fullCount', false)
                 if (cycle) {
                     cycle = false
                     writePLC('cycleRun', false, () => {
@@ -261,7 +266,7 @@ function connected(err) {
             }
 
         }
-    }, 500)
+    }, 200)
 
 
     setInterval(() => {
@@ -280,6 +285,7 @@ function valuesReady(anythingBad, values) {
     store.state.total = values.total
     store.state.primaryWork = values.primaryWork
     store.state.nokAndOk = values.nokAndOk
+    store.state.clock = values.clock
 
     if ((utils.getDB('config').alarmReset) ? (utils.getDB('config').alarmReset === 'Enable') : true) {
         if (!inCompleteWork && values.incompleteWork) {
@@ -316,6 +322,7 @@ function valuesReady(anythingBad, values) {
             }
         }
     })
+
 
 }
 

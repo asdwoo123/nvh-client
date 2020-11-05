@@ -64,7 +64,8 @@ export default new Vuex.Store({
         toolSensor: false,
         toolSensorCount: 0,
         toolDetectSwitch: false,
-        isTargetCount: false
+        isTargetCount: false,
+        clock: [0, 0, 0, 0, 0]
     },
     getters: {
         isHoleChecking: (state) => {

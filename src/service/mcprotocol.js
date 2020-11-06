@@ -136,11 +136,11 @@ function connected(err) {
                 if ([3, 5].some(n => n === productIndex)) {
                     if (store.state.toolSensor && !toolSensorOn && store.state.toolSensorCount < (db.getDB('config').toolCount * 1 || 5)) {
                         store.state.toolSensorCount++
+                        toolSensorOn = true
                         if (!tc && store.state.toolSensorCount === (db.getDB('config').toolCount * 1 || 5)) {
                             writePLC('fullCount', true)
                             tc = true
                         }
-                        toolSensorOn = true
                     }
 
                     if (!store.state.toolSensor && toolSensorOn) {
@@ -241,7 +241,7 @@ function connected(err) {
             }
 
         }
-    }, 200)
+    }, 100)
 
 
     setInterval(() => {
@@ -304,6 +304,10 @@ function valuesReady(anythingBad, values) {
 
 export function cylinderOn(index) {
     writePLC(cylinders[index], true);
+}
+
+export function fullCountOn() {
+        writePLC('fullCount', true)
 }
 
 export function cylinderOff(index) {

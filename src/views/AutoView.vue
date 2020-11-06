@@ -256,7 +256,8 @@ import {
   deComplete,
   selectModeOn,
   selectModeOff,
-  start
+  start,
+  fullCountOn
 } from '@/service/mcprotocol'
 import {cloneDeep, range} from 'lodash'
 import bus from '@/utils/bus'
@@ -306,16 +307,20 @@ export default {
       this.currentCount = this.getCurrentCount()
     })
 
+    let tc = false
+
+
     setInterval(() => {
       if (!this.visible && this.selectState) {
 
         this.selectState = false
         selectModeOff()
       }
-    }, 1000)
 
-    setInterval(() => {
-      if (!this.product) return;
+      if (!this.product) {
+        visibleState = false
+        return;
+      }
       const arr = []
       this.product.lamps.filter((x, i) => i !== 12).filter(x => !x.disable).forEach(lams => {
         const index = this.product.lamps.indexOf(lams)
@@ -329,11 +334,23 @@ export default {
         if ([3, 5].some(n => n === productIndex)) {
           if (this.UsingToolSensor === 'Enable') {
             if (this.toolCount * 1 !== this.$store.state.toolSensorCount) {
+              visibleState = false
+              tc = false
               return
+            } else {
+              if (!tc) {
+                fullCountOn()
+                tc = true
+              }
             }
           }
-        } else if (productIndex === 2) {
-          if (!this.$store.getters.isHoleChecking) return
+        }
+
+      if (productIndex === 2) {
+          if (!this.$store.getters.isHoleChecking) {
+            visibleState = false
+            return
+          }
         }
 
         visibleState = true
@@ -344,7 +361,7 @@ export default {
         this.$store.state.workComplete = false
         deComplete()
       }
-    }, 500)
+    }, 100)
   },
   computed: {
     product() {

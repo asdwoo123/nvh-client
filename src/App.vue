@@ -90,7 +90,7 @@ export default {
       }*/
     },
     currentTime() {
-      return moment(this.$store.clock).format('L LT')
+      return moment(this.$store.state.clock).format('L LT')
     },
     productName() {
       const productIndex = productList.indexOf(productList.find(v => v.productName === this.product.productName))

@@ -42,22 +42,6 @@ function aaa() {
     }
 }
 
-/*range(1000).forEach(() => {
-    utils.pushHistory('ct', {
-        model: 'adsdd',
-        cycleTime: 30,
-        time: new Date(2020, random(1, 10), random(1, 27), random(1, 24), 30)
-    })
-})*/
-
-/*
-utils.pushHistory('ct', {
-    model: 'adsdd',
-    cycleTime: 30,
-    time: moment()
-})
-*/
-
 
 variables.mode = 'M336,8'
 
@@ -118,7 +102,6 @@ function connected(err) {
     let working = false
     let hole = false
     let cycle = false
-    let wc = false
     let toolSensorOn = false
     let tc = false
 
@@ -221,7 +204,6 @@ function connected(err) {
                 }
 
                 working = false
-                wc = false
                 toolSensorOn = false
             }
 
@@ -229,19 +211,6 @@ function connected(err) {
             if (store.state.workComplete) {
 
                 working = false
-
-                if (!wc) {
-                    if (store.state.product) {
-                        utils.pushHistory('ct', {
-                            model: store.state.product.productName,
-                            cycleTime: store.state.cycleTime / 10,
-                            time: store.state.clock
-                        })
-                        bus.$emit('count', true)
-                    }
-
-                    wc = true
-                }
 
                 if (cycle) {
                     writePLC('cycleRun', false);
@@ -396,6 +365,14 @@ export function complete() {
     store.state.isComplete = true
     store.state.isStart = false
     writePLC('complete', true);
+    if (store.state.product) {
+        utils.pushHistory('ct', {
+            model: store.state.product.productName,
+            cycleTime: store.state.cycleTime / 10,
+            time: store.state.clock
+        })
+        bus.$emit('count', true)
+    }
 }
 
 export function deComplete() {

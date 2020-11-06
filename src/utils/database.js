@@ -271,7 +271,7 @@ export default {
     removeHistory(name) {
         db.set(name, []).write()
     },
-    getHistory(name) {
+    getHistory(name, clock) {
         if (name === 'uph') {
             let result = cloneDeep(db.get('ct').value()).filter(v => v.time && Date.parse(v.time)).map(v => {
                 const date = new Date(v.time)
@@ -307,8 +307,8 @@ export default {
                 return dateA > dateB ? 1 : -1;
             })
 
-            if (!arr.some(v => moment().format('YYYY-MM-DD') === moment(v[0]).format('YYYY-MM-DD')) ) {
-                arr.push([moment().format('YYYY-MM-DD'), {}])
+            if (!arr.some(v => moment(clock).format('YYYY-MM-DD') === moment(v[0]).format('YYYY-MM-DD')) ) {
+                arr.push([moment(clock).format('YYYY-MM-DD'), {}])
             }
 
 

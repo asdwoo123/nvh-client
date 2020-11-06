@@ -560,7 +560,6 @@ export default {
     },
     toggleDisable(index) {
       if (this.lampDisable) {
-        if (index > 11) index++
         const lamp = this.product.lamps[index]
         lamp.disable = !lamp.disable;
 

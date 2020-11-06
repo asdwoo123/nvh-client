@@ -101,13 +101,16 @@ export default {
     data: utils.getHistory(mode[0]),
     activeDay: '0',
     targetCount: utils.getDB('targetCount') || {},
-    currentTarget: utils.getDB('targetCount')[moment().format('YYYY-MM-DD')] || '0',
+    currentTarget: '0',
     range,
     moment
   }),
+  mounted() {
+    this.currentTarget =  utils.getDB('targetCount')[moment(this.$store.state.clock).format('YYYY-MM-DD')] || '0'
+  },
   computed: {
     today() {
-      moment(this.$store.state.clock).date()
+      return moment(this.$store.state.clock).date()
     }
   },
   methods: {
@@ -117,7 +120,7 @@ export default {
     },
     modeChange(mode) {
       this.mode = mode
-      this.data = utils.getHistory(mode)
+      this.data = utils.getHistory(mode, this.$store.state.clock)
     },
     handleActiveDay(day) {
       this.activeDay = day
@@ -127,7 +130,7 @@ export default {
 
       if (this.mode === 'uph') {
         this.$store.state.isTargetCount = this.currentTarget !== '0';
-        this.targetCount[moment().format('YYYY-MM-DD')] = this.currentTarget
+        this.targetCount[moment(this.$store.state.clock).format('YYYY-MM-DD')] = this.currentTarget
         utils.setDB('targetCount', this.targetCount)
       } else {
         utils.removeHistory(this.mode)
